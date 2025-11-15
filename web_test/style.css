@@ -1,0 +1,125 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #111;
+  color: #eee;
+  text-align: left;
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.banner {
+  width: 15%;
+  max-height: 400px;
+  object-fit: cover;
+  border-bottom: 2px solid #333;
+}
+
+.about-link {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  color: #4db8ff;
+
+  text-decoration: none;
+  font-size: 16px;
+}
+.about-link:hover {
+  text-decoration: underline;
+}
+
+h1 {
+  margin-top: 10px;
+  margin-bottom: 20px;
+  font-size: 2em;
+}
+
+#last-updated {
+  color: #ccc;
+  font-size: 0.9em;
+}
+
+
+th, td {
+  border-bottom: 0px solid #444;
+  padding: 10px 12px;
+  text-align: center;
+}
+
+th {
+  background-color: #222;
+  font-weight: bold;
+}
+
+a {
+  color: #4db8ff;
+  
+  text-decoration: none;
+}
+a:visited {
+  color: #4db8ff;
+
+}
+
+.race-icon {
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
+footer {
+  margin-top: 30px;
+  padding-bottom: 20px;
+}
+
+.play-link {
+  color: #4db8ff;
+
+  
+  font-size: 1.1em;
+  text-decoration: none;
+}
+.play-link:hover {
+  text-decoration: underline;
+}
+
+
+a.link {
+    color: #0af;
+    /* Must be block to control margins and alignment */
+    display: block; 
+    /* Must be fit-content so the element is not full width */
+    width: fit-content; 
+    
+    /* Set left margin to 'auto' to push the link to the right edge of its parent (content-container) */
+    margin: 20px 0 20px auto; 
+    
+    text-decoration: none;
+    /* This rule is now optional since the block itself is right-aligned */
+    text-align: right; 
+}
+
+a.link:hover { text-decoration: underline; }
+
+
+
+
+a.back-link {
+  color: #0af;
+  /* Change display to block so you can control its width and use margins */
+  display: block; 
+  /* Set width to fit the content, otherwise it spans the full width */
+  width: fit-content; 
+  /* Adjust margin to align with the body's padding (0 180px) */
+  margin: 20px 0 20px 0px; 
+  text-decoration: none;
+  /* text-align: left; is now redundant and can be removed */
+
+a.back-link:hover { text-decoration: underline; }
+}
+a.back-link:hover { text-decoration: underline; }

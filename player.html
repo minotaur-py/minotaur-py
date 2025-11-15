@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Player Profile</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* --------------------------
+       Variables — tweak here only
+       -------------------------- */
+    :root{
+      --bg: #121212;
+      --panel: #1f1f1f;
+      --panel-2: #242424;
+      --panel-3: #2a2a2a;
+      --border: #2a2a2a;
+      --muted: #aaa;
+      --text: #ddd;
+      --accent: #89CFF0;
+      --row-odd: #1b1b1b;
+      --row-even: #242424;
+      --match-header-bg: #2a2a2a;
+      --match-border: #222;
+      --shadow: rgba(0,0,0,0.45);
+    }
+
+    /* --------------------------
+       Page base
+       -------------------------- */
+    html,body { height:100%; }
+    body {
+      margin: 0;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding: 0 180px; /* preserved from your baseline */
+    }
+
+
+    /* --------------------------
+       Overview (unchanged layout,
+       subtle visual refinement)
+       -------------------------- */
+    #player-overview {
+      margin: 30px 0 24px;
+      padding: 30px 35px;
+      background-color: var(--panel);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .overview-header {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      background-color: var(--panel-3);
+      padding: 16px 20px;
+      margin: -30px -35px 20px -35px;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+      border-bottom: 1px solid #1f1f1f;
+    }
+
+    #playerNameHeader { font-size: 1.9em; color: #fff; font-weight:700; }
+    #mmrToggle { display:none; }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: 1fr 2fr 1fr;
+      gap: 30px;
+      align-items: start;
+      padding-top: 8px;
+    }
+
+    .overview-info,
+    .overview-chart {
+      background-color: #161616;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .overview-info { padding: 20px; display:flex; flex-direction:column; gap:12px; }
+    .playeroverview-title { font-size:1.15em; font-weight:600; color:#fff; margin-bottom:6px; }
+    .overview-info .info-row {
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      color: #dcdcdc;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+
+.overview-info { /*INTEGRER MED OVER*/
+  line-height: 1.8; /* increased spacing */
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  background-blend-mode: overlay;
+}
+
+
+
+    .overview-info .info-row:last-child { border-bottom: none; }
+    .overview-info .value { font-size:1.15em; color:#cfcfcf; }
+
+    .overview-chart { display:flex; flex-direction:column; align-items:center; justify-content:flex-start; min-height:300px; padding:16px; }
+    .overview-chart canvas { width:100% !important; height: calc(100% - 30px) !important; }
+    .chart-label { margin-top:12px; font-size:.95em; color:var(--muted); }
+
+    @media (max-width:1000px){
+      body{ padding:0 30px; }
+      .overview-grid{ grid-template-columns: 1fr; gap: 20px; }
+      .overview-chart{ min-height:250px; }
+      .overview-chart canvas{ height:180px !important; }
+    }
+
+    /* --------------------------
+       Match header and rows
+       IMPORTANT: keep grid-template-columns
+       IDENTICAL for header & rows to avoid
+       horizontal misalignment.
+       -------------------------- */
+
+    .match-header {
+      display: grid;
+      grid-template-columns: 150px 320px 1fr 320px 1fr 150px; /* EXACT same as your baseline  340 */
+      align-items: center;
+      gap: 30px;
+      font-weight: bold;
+      font-size: .9em;
+      letter-spacing: .05em;
+      color: #eee;
+      background-color: var(--match-header-bg);
+      padding: 10px 15px;
+      text-align: center;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+      border-bottom: 1px solid #1f1f1f;
+    }
+
+    .match-header .team-header {
+      display: grid;
+      grid-template-columns: 1fr 120px;
+      column-gap: 10px;
+      align-items: center;
+      text-align:left;
+      padding:0;
+    }
+
+    .mmr-group { display:grid; grid-template-columns: 60px 60px; justify-self:end; width:120px; }
+    .team-title { text-align:left; padding-left:8px; }
+    .match-status { text-align:center; font-weight:600; color:var(--text); }
+    .match-status .ago{ display:block; font-size:.8em; color:var(--muted); font-weight:400; }
+
+    /* matches container wraps the rows and creates a unified block */
+    #matches {
+      margin-bottom: 60px;
+      border: 1px solid var(--border);   /* subtle outer stroke to tie header + rows */
+      border-top: none;                   /* header already has top shape */
+      border-bottom-left-radius: 10px;
+      border-bottom-right-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px var(--shadow);
+      background-color: #161616;
+    }
+
+
+
+.match-row {
+  display: grid;
+  grid-template-columns: 150px 320px 1fr 320px 1fr 150px; /* unchanged */
+  align-items: center;
+  gap: 30px;
+  padding: 12px 15px;
+  margin: 0;
+  border-bottom: 1px solid var(--match-border);
+  background-color: var(--row-odd);
+  transition: background-color .08s ease;
+}
+
+.match-row:nth-child(even) {
+  background-color: var(--row-even);
+}
+
+
+    /* player cells — keep your existing structure, just color tweaks */
+    .team-column {
+      display: grid;
+      grid-template-columns: auto 1fr 60px 60px;
+      align-items: start;
+      gap: .25rem .5rem;
+    }
+
+    .player-card { display: contents; } /* your scripts rely on this */
+    .player-name {
+      color: var(--accent) !important;
+      text-decoration: none;
+      font-size: 1.1rem;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+      font-weight:500;
+    }
+    .player-name:hover { text-decoration: underline; }
+
+    .player-rating { font-size: 1rem; color: #ddd; }
+    .player-change { font-size: .8rem; line-height:1; margin-left:2px; color: #bbb; }
+    .player-change::before { content:'('; color:#fff; }
+    .player-change::after  { content:')'; color:#fff; }
+
+    .race-icon { width:20px; height:20px; object-fit:contain; }
+    .match-info { text-align:center; font-size:1.05em; color:#ccc; }
+    .duration { font-size:.8em; color:var(--muted); padding-top:4px; }
+
+    /* Small vertical padding match between header and first row
+       — ensures the border radii visually line up */
+    .match-header { padding-left:15px; padding-right:15px; }
+    .match-row  { padding-left:15px; padding-right:15px; }
+
+
+
+
+#playeroverview-summary {
+  margin-top: -0.5em;
+}
+
+
+#playeroverview-summary {
+  margin-top: -0.3em;
+  font-size: 1.1em;      /* slightly larger font */
+  line-height: 1.25;     /* comfortable spacing between lines */
+  color: #ddd;           /* consistent with rest of theme */
+
+}
+
+
+@media (max-width: 1290px) {
+  .match-header,
+  .match-row {
+    grid-template-columns: 50px 1fr 1px 1fr 1px 90px;
+    gap: 10px;
+  }
+}
+
+
+
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-link">← Back to leaderboard</a>
+
+  <section id="player-overview">
+    <div class="overview-header">
+      <span id="playerNameHeader">Loading...</span>
+      <button id="mmrToggle" aria-hidden="true">Equal spacing</button>
+    </div>
+
+    <div class="overview-grid">
+      <!-- LEFT: Playeroverview / summary box -->
+<div class="overview-info" style="background-color:#161616; border:1px solid var(--border); border-radius:8px; padding:20px;"> <!-- ekstrahere style fargen VAR 1c1c1c-->
+  
+
+
+
+
+  <div class="playeroverview-title">
+    Player Overview:
+  </div>
+
+
+<div id="playeroverview-summary"><span id="playeroverview-text">Loading stats...</span></div>
+
+
+
+
+</div>
+
+      <!-- MIDDLE: MMR chart -->
+      <div class="overview-chart">
+        <canvas id="mmrChart" width="400" height="220"></canvas>
+        <div class="chart-label">MMR Progression</div>
+      </div>
+
+      <!-- RIGHT: Race chart -->
+      <div class="overview-chart">
+        <canvas id="raceChart" width="220" height="220"></canvas>
+        <div class="chart-label">Race Selection</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="match-section">
+    <div class="match-header">
+    <div>RESULT</div>
+
+    <div class="team-header">
+      <div class="team-title">HOME TEAM</div>
+      <div class="mmr-group">
+        <div>MMR</div>
+        <div></div>
+      </div>
+    </div>
+
+    <div></div>
+
+    <div class="team-header">
+      <div class="team-title">AWAY TEAM</div>
+      <div class="mmr-group">
+        <div>MMR</div>
+        <div></div>
+      </div>
+    </div>
+
+    <div></div>
+
+    <div>MAP / DURATION</div>
+  </div>
+
+     </div>
+    <div id="matches"><!-- JS will append .match-row items here --></div>
+  </section>
+
+  <script src="script.js"></script>
+  <script src="player.js?v=2"></script>
+</body>
+</html>

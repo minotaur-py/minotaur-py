@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About</title>
+  <style>
+    :root {
+      --bg: #121212;
+      --panel: #1f1f1f;
+      --panel-3: #2a2a2a;
+      --border: #2a2a2a;
+      --text: #ddd;
+      --muted: #aaa;
+      --accent: #89CFF0;
+    }
+
+    body {
+      margin: 0;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      padding: 0 180px;
+    }
+
+    #player-overview {
+      margin: 30px 0 24px;
+      padding: 30px 35px;
+      background-color: var(--panel);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .overview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: var(--panel-3);
+      padding: 16px 20px;
+      margin: -30px -35px 20px -35px;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+      border-bottom: 1px solid #1f1f1f;
+    }
+
+    #playerNameHeader {
+      font-size: 1.9em;
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 30px;
+      align-items: start;
+      padding-top: 8px;
+      margin-bottom: 40px;
+    }
+
+    .overview-info,
+    .overview-chart {
+      background-color: #161616;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .overview-chart {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 300px;
+      position: relative;
+    }
+
+    .overview-chart canvas {
+      width: 100% !important;
+      height: calc(100% - 30px) !important;
+    }
+
+    .chart-label {
+      margin-top: 12px;
+      font-size: 0.95em;
+      color: var(--muted);
+    }
+
+    /* Custom HTML tooltip styling */
+    .chartjs-tooltip {
+      position: absolute;
+      background: #1f1f1f;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: #ddd;
+      padding: 8px 12px;
+      font-size: 0.9em;
+      pointer-events: none;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      transform: translate(-50%, 0);
+      max-width: 260px;
+      z-index: 10;
+    }
+
+    .chartjs-tooltip .small {
+      font-size: 0.8em;
+      color: #aaa;
+      margin-top: 4px;
+      padding-left: 8px;
+      line-height: 1.4;
+    }
+
+
+canvas#irsChart {
+  max-width: 570px;
+}
+
+    @media (max-width: 1000px) {
+      body {
+        padding: 0 30px;
+      }
+      .overview-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-link" style="color:var(--accent);text-decoration:none;">← Back to leaderboard</a>
+
+  <section id="player-overview">
+    <div class="overview-header">
+      <span id="playerNameHeader">Statistics</span>
+    </div>
+
+    <!-- Row 1: Activity level -->
+    <div class="overview-grid">
+      <div class="overview-info">
+        <div class="playeroverview-title" style="font-size:1.15em;font-weight:600;margin-bottom:6px;">Activity level</div>
+        <div id="playeroverview-text" style="line-height:1.6;color:#ccc;">
+          This prototype demonstrates a simple bar chart embedded in your existing layout theme.
+        </div>
+      </div>
+
+      <div class="overview-chart">
+        <canvas id="activityChart" width="600" height="300"></canvas>
+        <div class="chart-label">Games Played Per Week</div>
+      </div>
+    </div>
+
+
+<!-- Row 2: Individual race selection -->
+<div class="overview-grid">
+  <div class="overview-info">
+    <div class="playeroverview-title" style="font-size:1.15em;font-weight:600;margin-bottom:6px;">
+      Individual Race Selection and Win Rates
+    </div>
+    <div id="irs-text" style="line-height:1.6;color:#ccc;">
+      This pie chart shows how often players individually selected each race.
+    </div>
+  </div>
+
+  <div class="overview-chart">
+    <canvas id="irsChart" width="600" height="300"></canvas>
+    <div class="chart-label">Individual Race Selection and Win Rates</div>
+  </div>
+</div>
+
+<!-- Row 3: Matchup Win Rates -->
+<div class="overview-grid">
+  <div class="overview-info">
+    <div class="playeroverview-title" style="font-size:1.15em;font-weight:600;margin-bottom:6px;">
+      Matchup Win Rates
+    </div>
+    <div id="matchupoverview-text" style="line-height:1.6;color:#ccc;">
+      This chart shows how each team race composition performs against others.
+      Hover to see detailed win/loss statistics for each matchup.
+    </div>
+  </div>
+
+  <div class="overview-chart">
+    <canvas id="matchupChart" width="600" height="300"></canvas>
+    <div class="chart-label">Win Rate by Matchup</div>
+  </div>
+</div>
+
+
+
+
+
+    <!-- Row 4: Team race selection -->
+    <div class="overview-grid">
+      <div class="overview-info">
+        <div class="playeroverview-title" style="font-size:1.15em;font-weight:600;margin-bottom:6px;">Team Race Selection and Win Rates</div>
+        <div id="raceselectionoverview-text" style="line-height:1.6;color:#ccc;">
+          This chart shows the win rates by team race selection for the current season.
+        </div>
+      </div>
+
+      <div class="overview-chart">
+        <canvas id="raceSelectionChart" width="600" height="300"></canvas>
+        <div class="chart-label">Team Race Selection and Win Rates</div>
+      </div>
+    </div>
+
+    <!-- Row 5: Win rates                          tittel var   Win Rates by Team Race Composition         ny tittel Win Rates by Manner of Team Race Construction -->
+    <div class="overview-grid">
+      <div class="overview-info">
+        <div class="playeroverview-title" style="font-size:1.15em;font-weight:600;margin-bottom:6px;">Win Rates by Manner of Team Race Construction</div>
+        <div id="winrateoverview-text" style="line-height:1.6;color:#ccc;">
+          This chart shows the win rates for race combinations during the current season.
+        </div>
+      </div>
+
+      <div class="overview-chart">
+        <canvas id="winrateChart" width="600" height="300"></canvas>
+        <div class="chart-label">Win Rates by Team Race Composition</div>
+      </div>
+    </div>
+
+  </section>
+
+
+
+
+
+<div class="overview-grid"> <!--DENNE BLOKKEN ER CHARTEKSPERIMENTET -->
+  <div class="overview-info">
+    <div class="playeroverview-title" style="font-size:1.15em;font-weight:600;margin-bottom:6px;">
+      IRS Overview (Wins, Selections, Win Rate)
+    </div>
+    <div style="line-height:1.6;color:#ccc;">
+      Clustered bars show wins and selections; the line represents win rate.
+    </div>
+  </div>
+
+  <div class="overview-chart">
+    <canvas id="irsBarLineChart" width="600" height="300"></canvas>
+    <div class="chart-label">IRS Overview</div>
+  </div>
+</div>
+
+
+
+
+
+
+  <script src="script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="about.js"></script>
+</body>
+</html>

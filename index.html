@@ -1,0 +1,428 @@
+ <!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>The Customs Ladder</title>
+
+    <link rel="stylesheet" href="style.css" />
+
+    <style>
+
+        body {
+
+            background-color: #121212;
+
+            color: #ddd;
+
+            font-family: Arial, sans-serif;
+
+            text-align: center;
+
+            margin: 0;
+
+        }
+
+
+
+        header {
+
+            margin: 2px 0 26px 0;
+
+        }
+
+
+
+        header h1 {  /* får margin fra header */
+
+            font-size: 3.5rem;
+
+            font-weight: bold;
+
+            color: white;
+
+            margin: 0;
+
+        }
+
+
+
+        header p {
+
+            font-size: 0.9rem;
+
+            color: #aaa;
+
+            margin-top: 4px;
+
+        }
+
+
+
+        table {
+
+            width: 100%;
+
+            margin: 24px auto;
+
+            border-collapse: collapse;
+
+            background-color: #1e1e1e;
+
+            border-radius: 8px;
+
+            overflow: hidden;
+
+            border: 0px solid #2a2a2a;
+
+            /* <-- THIS is your 1px frame */
+
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+
+        }
+
+
+
+        .table-wrapper {
+
+            display: inline-block;
+
+            /* shrink-wrap the table exactly */
+
+            border: 1px solid #2a2a2a;
+
+            /* 1px frame */
+
+            border-radius: 8px;
+
+            overflow: hidden;
+
+            background-color: #2a2a2a;
+
+            /* wrapper bg to match border effect */
+
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+
+        }
+
+
+
+        .table-wrapper table {
+
+            width: 1100px;
+
+            /* desired table width */
+
+            border-collapse: collapse;
+
+            /* avoid double borders */
+
+            margin: 0;
+
+            /* no extra spacing */
+
+            background-color: #1e1e1e;
+
+            /* table interior color */
+
+        }
+
+
+
+        th,
+
+        td {
+
+            padding: 10px 14px;
+
+            text-align: left;
+
+        }
+
+
+
+        th {
+
+            background-color: #2a2a2a;
+
+            color: #fff;
+
+            text-transform: uppercase;
+
+            font-size: 0.85rem;
+
+            letter-spacing: 0.05em;
+
+        }
+
+
+
+        tr:nth-child(even) {
+
+            background-color: #2a2a2a;
+
+        }
+
+
+
+        tr:hover {
+
+            background-color: #3a3a3a;
+
+        }
+
+
+
+        tr.clickable {
+
+            cursor: pointer;
+
+        }
+
+
+
+        tr.clickable:hover td {
+
+            color: #fff;
+
+        }
+
+
+
+        .player-cell {
+
+            color: white;
+
+            font-weight: bold;
+
+            font-size: 1.1rem;
+
+        }
+
+
+
+        .last-updated {
+
+            font-size: 0.8rem;
+
+            color: #888;
+
+            margin-bottom: 20px;
+
+        }
+
+
+
+        .banner {
+
+            width: 70%;
+
+            max-width: 1500px;
+
+            height: auto;
+
+            margin: 0 auto 16px;
+
+            display: block;
+
+            border-radius: 8px;
+
+        }
+
+.content-container {
+
+    /* Set the container width to exactly match the table width (1100px) */
+
+    width: 1100px;
+
+    /* Center the container itself using margin: 0 auto.
+
+       This overrides the body's text-align: center for this block element. */
+
+    margin: 0 auto;
+
+    /* Ensure no extra padding inside the container */
+
+    padding: 0;
+
+    /* Reset text-align for child elements to left for standard flow */
+
+    
+
+}
+
+
+
+
+
+.row-link {
+
+    display: block;       /* fills the cell */
+
+    width: 100%;
+
+    height: 100%;
+
+    color: inherit;       /* keep your existing table colors */
+
+    text-decoration: none;
+
+}
+
+
+
+tr:hover .row-link {
+
+    color: #fff;          /* replicate your hover effect */
+
+}
+
+
+
+tr:hover td a.row-link {
+
+    color: #fff !important;
+
+}
+
+
+
+td a.row-link {
+
+    color: inherit !important;
+
+}
+
+
+
+
+
+#season-label {
+
+    /* Set up positioning context for the ::after element */
+
+    position: relative; 
+    font-size: 1rem;
+    padding: 5px 0px 0px 0px;
+
+    /* Allow the inline text and the ::after element to be on the same line */
+
+    display: inline-block; 
+
+}
+
+
+
+#season-label::after {
+
+    /* The content of the label */
+
+    content: "beta"; 
+
+    
+
+    /* Styling for the red label */
+
+    background-color: #e74c3c; /* A nice bright red */
+
+    color: white;
+
+    font-size: 0.95em; /* Slightly smaller than the main text */
+
+    font-weight: bold;
+
+    text-transform: uppercase;
+
+    
+
+    /* Padding and rounded corners for a label look */
+
+    padding: 2px 6px;
+
+    margin-left: 8px; /* Space between the main text and the label */
+
+    border-radius: 4px; 
+
+    
+
+    /* Optional: Animate the hover for a polished look */
+
+    transition: background-color 0.2s;
+
+}
+
+
+
+
+
+
+
+
+
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="content-container">
+
+<div class="link-wrapper">
+
+    <a href="statistics.html" class="link">Statistics</a>
+
+    <a href="about.html" class="link">About</a>
+
+</div>
+
+    <header>
+
+        <h1>The Customs Ladder</h1>
+
+        <p id="season-label"></p>
+
+    </header>
+
+    <div class="last-updated" id="last-updated"></div>
+
+    <div class="table-wrapper">
+
+        <table id="leaderboard">
+
+            <thead>
+
+                <tr>
+
+                    <th>Rank</th>
+
+                    <th>Player</th>
+
+                    <th>MMR</th>
+
+                    <th>Uncertainty</th>
+
+                    <th>Win/Loss</th>
+
+                    <th>Last Active</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody></tbody>
+
+        </table>
+
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>

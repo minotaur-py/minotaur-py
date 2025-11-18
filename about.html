@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    :root {
+      --bg: #121212;
+      --panel: #1f1f1f;
+      --panel-3: #2a2a2a;
+      --border: #2a2a2a;
+      --text: #ccc;
+      --muted: #aaa;
+      --accent: #89CFF0;
+    }
+
+    body {
+      margin: 0;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      padding: 0 180px; /* hvor mye luft på sidene */
+    }
+
+    #topp-boks {
+      margin: 30px 0 24px;
+      padding: 30px 35px;
+      background-color: var(--panel);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .topp-boks-div {
+      background-color: var(--panel-3);
+      padding: 16px 20px;
+      margin: -30px -35px 20px -35px;
+      border-top-left-radius: 10px; /* brukes ikke */
+      border-top-right-radius: 10px; /* brukes ikke */
+      border-bottom: 1px solid #1f1f1f;
+    }
+
+    #overskrift {
+      font-size: 1.9em;
+      color: #fff;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 30px;
+      align-items: start;
+      padding-top: 8px;
+      margin-bottom: 40px;
+    }
+
+    .overview-info,
+    .overview-chart {
+      background-color: #161616;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    /* Side by side flex-boks */
+    .about-content {
+      display: flex;
+      gap: 30px; /* Space between image and text */
+      align-items: flex-start; /* Aligns content to the top */
+    }
+    
+    .about-content img {
+      max-width: 70%; /* Bildebredde */
+      height: auto;
+      border-radius: 8px; 
+    }
+    
+    .about-text {
+  flex-grow: 1; /* Allows text to take up the remaining space */
+  background-color: #161616;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+    }
+    /* ------------------------------------------ */
+
+
+    @media (max-width: 1000px) {
+      body {
+        padding: 0 30px;
+      }
+      .overview-grid {
+        grid-template-columns: 1fr;
+      }
+      /* Stack image and text on small screens */
+      .about-content {
+        flex-direction: column;
+      }
+      .about-content img {
+        max-width: 100%;
+      }
+    }
+
+
+p {
+    line-height: 1.6; 
+    margin-bottom: 1em; 
+    color: var(--muted); 
+}
+
+
+a:hover {
+    text-decoration: underline;
+}
+
+
+.workinprogress {
+  
+  color: #ccc;
+  font-weight: bold;
+  font-style: italic;
+
+}
+
+
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-link">← Back to leaderboard</a>
+
+  <section id="topp-boks">
+    <div class="topp-boks-div">
+      <h2 id = "overskrift">About the Customs Ladder</h2>
+    </div>
+    
+    <div class="about-content">
+      <img src="assets/twilight.webp" alt="twilight.webp">
+      
+      <div class="about-text">
+        <p> This website downloads the matchlists of anyone that is currently a member of the #Customs channel at <a href="http://www.shieldbattery.net">shieldbattery.net</a>, extracts the 2v2 lobby games, runs them through a rating algorithm, and publishes the results to a leaderboard.</p>
+        <p>If you find any bugs or errors, or if you have any questions or suggestions for improvement, please contact <a href="mailto:minotaurbw@protonmail.com">minotaurbw@protonmail.com</a>. </p>
+        <p>Do also note that this project is still <span class="workinprogress">work in progress</span>. Most notably, automatic updates are not implemented yet. </p>
+
+</div>
+    </div>
+
+  </section>
+</body>
+</html>

@@ -115,7 +115,7 @@ for (const date of datesUTC) {
 
 async function loadIndividualRaceSelectionChart() {
   const currentSeason = await getCurrentSeason().catch(() => 0);
-  const res = await fetchNoCache(`/data/seasons/${currentSeason}/statistics_data.json`);
+  const res = await fetchNoCache(`data/seasons/${currentSeason}/statistics_data.json`);
   const data = await res.json();
   const irs = data.irs || {};
 
@@ -266,7 +266,7 @@ if (key === "r" && irs.x) {
 
 async function loadTeamRaceFrequencyChart() {
   const currentSeason = await getCurrentSeason().catch(() => 0);
-  const res = await fetchNoCache(`/data/seasons/${currentSeason}/statistics_data.json`);
+  const res = await fetchNoCache(`data/seasons/${currentSeason}/statistics_data.json`);
   const data = await res.json();
   const muwr = data.muwr || {};
 
@@ -563,7 +563,7 @@ async function loadTeamRaceFrequencyChart() {
 
 async function loadMatchupWinrateChart() {
   const currentSeason = await getCurrentSeason().catch(() => 0);
-  const res = await fetchNoCache(`/data/seasons/${currentSeason}/statistics_data.json`);
+  const res = await fetchNoCache(`data/seasons/${currentSeason}/statistics_data.json`);
   const data = await res.json();
   const muwrr = data.muwrr || {};
 
@@ -738,7 +738,7 @@ e.sub
 
 async function loadRaceSelectionChart() {
   const currentSeason = await getCurrentSeason().catch(() => 0);
-  const res = await fetchNoCache(`/data/seasons/${currentSeason}/statistics_data.json`);
+  const res = await fetchNoCache(`data/seasons/${currentSeason}/statistics_data.json`);
   const data = await res.json();
   const rs = data.rs || {};
 
@@ -828,7 +828,7 @@ async function loadRaceSelectionChart() {
 
 async function loadWinrateChart() {
   const currentSeason = await getCurrentSeason().catch(() => 0);
-  const res = await fetchNoCache(`/data/seasons/${currentSeason}/statistics_data.json`);
+  const res = await fetchNoCache(`data/seasons/${currentSeason}/statistics_data.json`);
   const data = await res.json();
   const wlp = data.wlp || {};
 
@@ -1150,3 +1150,4 @@ loadRaceSelectionChart();
 loadWinrateChart();
 
 /*loadIRSBarLineChart()*/
+

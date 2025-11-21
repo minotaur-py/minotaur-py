@@ -448,7 +448,8 @@ losers: match.losers.map(([id, race, mu, sigma, muChange]) => ({
           scales: {
             x: {
               title: { display: true, text: "Games", color: "#ccc" },
-              ticks: { display: false },
+              ticks: { display: true, autoSkip: true,
+      maxTicksLimit: 32 },
               grid: { color: "#333" }
             },
             y: {

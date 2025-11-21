@@ -132,7 +132,7 @@ new Chart(document.getElementById("activityChart"), {
 async function loadActivityWeekdayChart() {
   // 1. Load season + activity timestamps
   const currentSeason = await getCurrentSeason().catch(() => 0);
-  const res = await fetchNoCache(`/data/seasons/${currentSeason}/statistics_data.json`);
+  const res = await fetchNoCache(`data/seasons/${currentSeason}/statistics_data.json`);
   const data = await res.json();
   const timestamps = data.activity || [];
 
@@ -228,7 +228,7 @@ async function loadActivityWeekdayChart() {
 
 async function loadActivityClockChart() {
   const currentSeason = await getCurrentSeason().catch(() => 0);
-  const res = await fetchNoCache(`/data/seasons/${currentSeason}/statistics_data.json`);
+  const res = await fetchNoCache(`data/seasons/${currentSeason}/statistics_data.json`);
   const data = await res.json();
   const timestamps = data.activity || [];
 
@@ -311,7 +311,7 @@ async function loadActivityClockChart() {
 
 async function loadIndividualRaceSelectionChart() {
   const currentSeason = await getCurrentSeason().catch(() => 0);
-  const res = await fetchNoCache(`/data/seasons/${currentSeason}/statistics_data.json`);
+  const res = await fetchNoCache(`data/seasons/${currentSeason}/statistics_data.json`);
   const data = await res.json();
   const irs = data.irs || {};
 
@@ -462,7 +462,7 @@ if (key === "r" && irs.x) {
 
 async function loadTeamRaceFrequencyChart() {
   const currentSeason = await getCurrentSeason().catch(() => 0);
-  const res = await fetchNoCache(`/data/seasons/${currentSeason}/statistics_data.json`);
+  const res = await fetchNoCache(`data/seasons/${currentSeason}/statistics_data.json`);
   const data = await res.json();
   const muwr = data.muwr || {};
 
@@ -759,7 +759,7 @@ async function loadTeamRaceFrequencyChart() {
 
 async function loadMatchupWinrateChart() {
   const currentSeason = await getCurrentSeason().catch(() => 0);
-  const res = await fetchNoCache(`/data/seasons/${currentSeason}/statistics_data.json`);
+  const res = await fetchNoCache(`data/seasons/${currentSeason}/statistics_data.json`);
   const data = await res.json();
   const muwrr = data.muwrr || {};
 
@@ -913,7 +913,7 @@ async function loadMatchupWinrateChart() {
 
 async function loadWinrateChart() {
   const currentSeason = await getCurrentSeason().catch(() => 0);
-  const res = await fetchNoCache(`/data/seasons/${currentSeason}/statistics_data.json`);
+  const res = await fetchNoCache(`data/seasons/${currentSeason}/statistics_data.json`);
   const data = await res.json();
   const wlp = data.wlp || {};
 

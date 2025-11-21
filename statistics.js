@@ -5,7 +5,7 @@
 
 async function loadActivityChart() {
   const currentSeason = await getCurrentSeason().catch(() => 0);
-  const res = await fetchNoCache(`/data/seasons/${currentSeason}/statistics_data.json`);
+  const res = await fetchNoCache(`data/seasons/${currentSeason}/statistics_data.json`);
   const data = await res.json();
   const timestamps = data.activity || [];
 
@@ -1148,4 +1148,5 @@ loadTeamRaceFrequencyChart();
 loadMatchupWinrateChart();   
 loadRaceSelectionChart();
 loadWinrateChart();
+
 /*loadIRSBarLineChart()*/

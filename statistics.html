@@ -188,6 +188,17 @@ canvas#irsChart {
    
 }
 
+@media (max-width: 1600px) {
+body {
+
+
+padding: 0 5%; 
+
+}
+}
+
+
+
 
   </style>
 </head>
@@ -200,18 +211,13 @@ canvas#irsChart {
       <span id="boksTittel">Statistics</span>
     </div>
 
-    <!-- Chart 1: Activity level. id = activityChart -->
-    <div class="boks-grid">
-      <div class="info-boks">
-        <div class="infoboks-tittel">Activity level</div>
-        <div class="infoboks-tekst">Number of custom 2v2 games / week.</div>
-      </div>
 
-      <div class="grafikk-boks">
-        <canvas id="activityChart" width="600" height="300"></canvas>
-        <div class="chart-label">Games Played Per Week</div>
-      </div>
-    </div>
+
+
+
+
+
+
 
 
 <!-- Row 2: Individual race selection. id = irsChart  -->
@@ -262,7 +268,7 @@ canvas#irsChart {
 
 
 
-    <!-- Row 5: Team race selection      id er            raceSelectionChart         -->
+    <!-- Row 5: Team race selection      id er            raceSelectionChart         
     <div class="boks-grid">
       <div class="info-boks">
         <div class="infoboks-tittel">Win Rates by Team Race Selections</div>
@@ -277,12 +283,14 @@ canvas#irsChart {
       </div>
     </div>
 
+-->
+
     <!-- Row 6: Win rates        id er       winrateChart        -->
     <div class="boks-grid">
       <div class="info-boks">
         <div class="infoboks-tittel">Win Rates by Manner of Team Race Construction</div>
         
-        <div class="infoboks-tekst">This chart shows the win rates for race combinations during the current season.</div>
+        <div class="infoboks-tekst">This chart shows the win rates for the various ways each team race composition may be "constructed".</div>
 
       </div>
 
@@ -291,6 +299,61 @@ canvas#irsChart {
         <div class="chart-label">Win Rates by Team Race Composition</div>
       </div>
     </div>
+
+
+
+    <!-- Chart 1: Activity level. id = activityChart -->
+    <div class="boks-grid">
+      <div class="info-boks">
+        <div class="infoboks-tittel">Level of activity during the season</div>
+        <div class="infoboks-tekst">Number of custom 2v2 games / week.</div>
+      </div>
+
+      <div class="grafikk-boks">
+        <canvas id="activityChart" width="600" height="300"></canvas>
+        <div class="chart-label">Games Played Per Week</div>
+      </div>
+    </div>
+
+
+
+
+
+   <!-- Chart 1.25: Activity / day of the week. id = activityChart -->
+    <div class="boks-grid">
+      <div class="info-boks">
+        <div class="infoboks-tittel">Activity during the week</div>
+        <div class="infoboks-tekst">Average number of games / day.</div>
+      </div>
+
+      <div class="grafikk-boks">
+        <canvas id="activityWeekdayChart" width="600" height="300"></canvas>
+        <div class="chart-label">Weekday</div>
+      </div>
+    </div>
+
+
+
+
+
+
+
+
+    <!-- Chart 1.5: Activity / time of day. id = activityChart -->
+    <div class="boks-grid">
+      <div class="info-boks">
+        <div class="infoboks-tittel">Activity during the day</div>
+        <div class="infoboks-tekst">Games / hour of day UTC.</div>
+      </div>
+
+      <div class="grafikk-boks">
+        <canvas id="activityChartB" width="600" height="300"></canvas>
+        <div class="chart-label">Distribution of games / UTC hour</div>
+      </div>
+    </div>
+
+
+
 
   </section>
 
@@ -319,5 +382,10 @@ canvas#irsChart {
   <script src="script.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="statistics.js"></script>
+
+
+
+
+
 </body>
 </html>

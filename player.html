@@ -10,17 +10,17 @@
        Variables — tweak here only
        -------------------------- */
     :root{
-      --bg: #121212;
-      --panel: #1f1f1f;
-      --panel-2: #242424;
-      --panel-3: #2a2a2a;
+      
+      --panel: #1f1f1f;             /* øvre panel  */
+      
+      --panel-3: #2a2a2a;           /* brukes av header øvre panel */
       --border: #2a2a2a;
-      --muted: #aaa;
-      --text: #ddd;
-      --accent: #89CFF0;
+      --muted: #aaa;                 /* brukes av duration  A570FF    */
+      
+      --accent: #89CFF0;              /* spillernavn */
       --row-odd: #1b1b1b;
       --row-even: #242424;
-      --match-header-bg: #2a2a2a;
+      --match-header-bg: #2a2a2a;       /* table header */
       --match-border: #222;
       --shadow: rgba(0,0,0,0.45);
     }
@@ -30,13 +30,9 @@
        -------------------------- */
     html,body { height:100%; }
     body {
-      margin: 0;
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: Arial, sans-serif;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      padding: 0 180px; /* preserved from your baseline */
+      
+
+      padding: 0 180px; 
     }
 
 
@@ -49,23 +45,26 @@
       background-color: var(--panel);
       border-radius: 10px;
       border: 1px solid var(--border);
-      color: var(--text);
+      
     }
 
-    .overview-header { /*Linjen der spillernavnet står */
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
+    .overview-header { /*Linjen der spillernavnet står */      
       background-color: var(--panel-3);
       padding: 16px 20px;
       margin: -30px -35px 20px -35px;
       border-top-left-radius: 10px;
       border-top-right-radius: 10px;
       border-bottom: 1px solid #1f1f1f;
+      
     }
 
-    #playerNameHeader { font-size: 1.9em; color: #fff; font-weight:700; }
-    #mmrToggle { display:none; }
+    #playerNameHeader { 
+      font-size: 1.9em; 
+      color: #fff;
+      font-weight:700; 
+    }
+    
+   
 
     .overview-grid {
       display: grid;
@@ -199,7 +198,7 @@
 
     .player-card { display: contents; } /* your scripts rely on this */
     .player-name {
-      color: var(--accent) !important;
+      color: var(--accent) !important; /* hvorfor behov important? */
       text-decoration: none;
       font-size: 1.1rem;
       text-align: left;
@@ -255,6 +254,16 @@
 
 
 
+.race-icon {
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
+
+
+
 
 
 
@@ -305,7 +314,7 @@
   <section id="player-overview">
     <div class="overview-header">
       <span id="playerNameHeader">Loading...</span>
-      <button id="mmrToggle" aria-hidden="true">Equal spacing</button>
+      
     </div>
 
     <div class="overview-grid">

@@ -17,11 +17,11 @@
     }
 
     body {
-      margin: 0;
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: Arial, sans-serif;
-      -webkit-font-smoothing: antialiased;
+      
+      
+      
+      
+      
       padding: 0 180px; /* hvor mye luft på sidene */
     }
 
@@ -74,12 +74,16 @@
       align-items: flex-start; /* Aligns content to the top */
     }
     
-    .about-content img {
-      max-width: 70%; /* Bildebredde */
-      height: auto;
-      border-radius: 8px; 
-    }
-    
+
+/*
+
+.about-content {
+  display: flex;
+  gap: 16px; /* optional spacing between image and text */
+  align-items: stretch; /* make items fill container vertically */
+}
+
+
     .about-text {
   flex-grow: 1; /* Allows text to take up the remaining space */
   background-color: #161616;
@@ -87,24 +91,116 @@
   border-radius: 8px;
   padding: 16px;
     }
+
+
+.about-content {
+  display: flex;
+  gap: 16px; /* optional spacing between image and text */
+  align-items: stretch; /* make items fill container vertically */
+}
+
+
+
+.about-content img {
+  width: 70%;
+ 
+  max-width: none;   /* important */
+  flex: 0 0 70%;
+}
+
+.about-text {
+  flex: 0 0 30%;
+  background-color: #161616;  /* reintroduce background */
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+*/
+
+
+
+.about-content {
+  display: flex;
+  gap: 30px;
+  align-items: stretch;      /* ensures equal height in row mode */
+  flex-wrap: nowrap;
+}
+
+/* Image (70% in row mode) */
+.about-content img {
+  flex: 0 0 70%;
+  width: 70%;
+  max-width: none;           /* override previous max-width: 100% */
+  border-radius: 8px;
+  height: auto;
+}
+
+/* Text box (30% in row mode) */
+.about-text {
+  flex: 1;                   /* take remaining space without shrinking */
+  background-color: #161616;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+
+
+
+
+
+
+
     /* ------------------------------------------ */
 
 
-    @media (max-width: 1000px) {
-      body {
-        padding: 0 30px;
-      }
-      .overview-grid {
-        grid-template-columns: 1fr;
-      }
-      /* Stack image and text on small screens */
-      .about-content {
-        flex-direction: column;
-      }
-      .about-content img {
-        max-width: 100%;
-      }
+
+
+
+/* ---------- Small screens: column layout ---------- */
+@media (max-width: 1380px) {
+  .about-content {
+    flex-direction: column;
+    align-items: stretch;    /* full width for both items */
+  }
+
+  .about-content img {
+    flex: none;              /* stop enforcing the 70% rule */
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .about-text {
+    flex: none;              /* just take natural height + full width */
+    width: 100%;
+  }
+}
+
+
+
+
+
+
+
+@media (max-width: 1600px) {
+body {
+
+
+padding: 0 5%; 
+
+}
+}
+
+@media (min-width: 1921px) {
+    .about-content img {
+        /* Increase image width on very large screens */
+        width: 170%; 
     }
+}
+
+
 
 
 p {
@@ -128,6 +224,12 @@ a:hover {
 }
 
 
+
+
+
+
+
+
   </style>
 </head>
 <body>
@@ -142,9 +244,9 @@ a:hover {
       <img src="assets/twilight.webp" alt="twilight.webp">
       
       <div class="about-text">
-        <p> This website downloads the matchlists of anyone that is currently a member of the #Customs channel at <a href="http://www.shieldbattery.net">shieldbattery.net</a>, extracts the 2v2 lobby games, runs them through a rating algorithm, and publishes the results to a leaderboard.</p>
+        <p> This website downloads the matchlists of anyone that is currently a member of the <span class="workinprogress">#Customs</span> channel at <a href="http://www.shieldbattery.net">shieldbattery.net</a>, extracts the 2v2 lobby games, runs them through a rating algorithm, and publishes the results to a leaderboard.</p>
         <p>If you find any bugs or errors, or if you have any questions or suggestions for improvement, please contact <a href="mailto:minotaurbw@protonmail.com">minotaurbw@protonmail.com</a>. </p>
-        <p>Do also note that this project is still <span class="workinprogress">work in progress</span>. Most notably, automatic updates are not implemented yet. </p>
+        
 
 </div>
     </div>

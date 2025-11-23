@@ -1,23 +1,20 @@
 body {
   font-family: Arial, sans-serif;
-  background-color: #111;
-  color: #eee;
+  background-color: #121212;
+
   text-align: left;
   margin: 0;
   padding: 0;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+
 }
 
 header {
   position: relative;
-  margin-bottom: 20px;
+
 }
 
-.banner {
-  width: 15%;
-  max-height: 400px;
-  object-fit: cover;
-  border-bottom: 2px solid #333;
-}
 
 .about-link {
   position: absolute;
@@ -36,6 +33,7 @@ h1 {
   margin-top: 10px;
   margin-bottom: 20px;
   font-size: 2em;
+  color: white;
 }
 
 #last-updated {
@@ -65,17 +63,7 @@ a:visited {
 
 }
 
-.race-icon {
-  width: 18px;
-  height: 18px;
-  vertical-align: middle;
-  margin-right: 5px;
-}
 
-footer {
-  margin-top: 30px;
-  padding-bottom: 20px;
-}
 
 .play-link {
   color: #4db8ff;
@@ -108,8 +96,6 @@ a.link {
 
 
 
-
-
 a.link:hover { text-decoration: underline; }
 
 
@@ -121,7 +107,6 @@ a.link:hover { text-decoration: underline; }
     /* Add space between them */
     gap: 15px; 
 }
-
 
 
 
@@ -140,3 +125,166 @@ a.back-link {
 a.back-link:hover { text-decoration: underline; }
 }
 a.back-link:hover { text-decoration: underline; }
+
+
+
+
+
+
+
+
+
+
+
+/* FRA INDEX */
+
+        #season-label {
+            /* Set up positioning context for the ::after element */
+            position: relative;
+            font-size: 1rem;
+            padding: 5px 0 0;
+            /* Allow the inline text and the ::after element to be on the same line */
+            display: inline-block;
+        }
+
+        #season-label::after {
+            /* The content of the label */
+            content: "beta";
+
+            /* Styling for the red label */
+            background-color: #e74c3c; /* A nice bright red */
+            color: white;
+            font-size: 0.95em; /* Slightly smaller than the main text */
+            font-weight: bold;
+            text-transform: uppercase;
+
+            /* Padding and rounded corners for a label look */
+            padding: 2px 6px;
+            margin-left: 8px; /* Space between the main text and the label */
+            border-radius: 4px;
+
+            /* Optional: Animate the hover for a polished look */
+            transition: background-color 0.2s;
+        }
+
+
+
+
+
+        .table-wrapper {
+            display: inline-block;
+            /* shrink-wrap the table exactly */
+            border: 1px solid #2a2a2a;
+            
+            border-radius: 8px;
+            overflow: hidden;
+            
+            /* wrapper bg to match border effect */
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+        }
+
+        .table-wrapper table {
+            width: 1100px;
+            /* desired table width */
+            border-collapse: collapse;
+            /* avoid double borders */
+            margin: 0;
+            /* no extra spacing */
+            background-color: #1e1e1e;
+            /* table interior color */
+        }
+
+
+
+
+
+
+
+
+
+        tr:hover {
+            background-color: #3a3a3a;
+        }
+
+        tr.clickable {
+            cursor: pointer;
+        }
+
+        tr.clickable:hover td {
+            color: #fff;
+        }
+
+        .player-cell {
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .last-updated {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 20px;
+        }
+
+        .content-container {
+            width: 1100px;
+            /* Center the container itself using margin: 0 auto.
+            This overrides the body's text-align: center for this block element. */
+            margin: 0 auto;
+            /* Ensure no extra padding inside the container */
+            padding: 0;
+        }
+
+        .row-link {
+            display: block; /* fills the cell */
+            width: 100%;
+            height: 100%;
+            color: inherit; /* keep your existing table colors */
+            text-decoration: none;
+        }
+
+        tr:hover .row-link {
+            color: #fff; /* replicate your hover effect */
+        }
+
+        tr:hover td a.row-link {
+            color: #fff !important;
+        }
+
+        td a.row-link {
+            color: inherit !important;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* FRA PLAYER   /*
+
+
+.race-icon {
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
+
+
+
+
+
+
+
+

@@ -6,8 +6,10 @@ function fetchNoCache(url) {
 
 // --- Determine current season from data/season_start.json ---
 async function getCurrentSeason() {
-  const res = await fetchNoCache('data/season_start.json');
-  const seasonStart = await res.json();
+
+  const res = await fetchNoCache('data/misc_data.json');
+  const miscData = await res.json();
+  const seasonStart = miscData.seasons;
 
   const now = Date.now();
 
@@ -140,7 +142,7 @@ tbody.appendChild(row);
 const lastUpdatedEl = document.getElementById("last-updated");
 if (lastUpdatedEl) {
   try {
-    const procData = await fetchNoCache("data/proc_data.json").then(r => r.json());
+    const procData = await fetchNoCache("data/misc_data.json").then(r => r.json());
     const lastProcess = procData.last_process;
     // convert seconds → milliseconds if value looks too small
     const tsMs = lastProcess < 1e12 ? lastProcess * 1000 : lastProcess;

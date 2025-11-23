@@ -1,9 +1,50 @@
 
 
 
+const CHART_COLORS = {
+
+  
 
 
-/* CHART 1  */
+  ACTIVITY_BAR: "rgba(255,111,60,0.7)",
+  ACTIVITY_BORDER: "#FF6F3C",
+
+  FREQUENCY_BAR: "rgba(79,163,255,0.8)",
+  FREQUENCY_BORDER: "#4FA3FF",
+
+
+  WINRATE_BAR: "rgba(57,208,112,0.8)",
+  WINRATE_BORDER: "#39D070",
+
+
+};
+
+
+const CHART_COLORSX = {
+  // --- ACTIVITY (Muted Orange/Terracotta) ---
+  ACTIVITY_BAR: "rgba(180, 80, 45, 0.7)", // Darker, less vibrant orange/brown
+  ACTIVITY_BORDER: "#B4502D", // Matches the new background color
+
+  // --- FREQUENCY (Muted Blue/Slate) ---
+  FREQUENCY_BAR: "rgba(60, 110, 160, 0.8)", // Darker, grayish-blue
+  FREQUENCY_BORDER: "#3C6E9F", // Matches the new background color
+
+  // --- WINRATE (Muted Green/Olive) ---
+  WINRATE_BAR: "rgba(65, 120, 80, 0.8)", // Darker, earthier green/olive
+  WINRATE_BORDER: "#417850", // Matches the new background color
+};
+
+
+
+
+
+
+
+
+
+
+
+/* CHART 5 Seasonal Activity id = activityChart */
 
 
 async function loadActivityChart() {
@@ -86,8 +127,8 @@ new Chart(document.getElementById("activityChart"), {
     datasets: [{
       label: "Games Played",
       data: counts,
-      backgroundColor: "rgba(255,111,60,0.7)",
-      borderColor: "#FF6F3C",
+      backgroundColor: CHART_COLORS.ACTIVITY_BAR,
+      borderColor: CHART_COLORS.ACTIVITY_BORDER,
       borderWidth: 1,
       borderRadius: 6
     }]
@@ -125,7 +166,7 @@ new Chart(document.getElementById("activityChart"), {
 
 
 
-/* CHART 2 WEEKS */
+/* CHART 6 Weekday Activity */
 
 
 
@@ -171,8 +212,8 @@ async function loadActivityWeekdayChart() {
         label: "Average games per weekday",
         data: weekdayAverages,
         borderWidth: 2,
-        borderColor: "#FF6F3C",
-        backgroundColor: "rgba(255,111,60,0.7)"
+        borderColor: CHART_COLORS.ACTIVITY_BORDER,
+        backgroundColor: CHART_COLORS.ACTIVITY_BAR,
       }]
     },
     options: {
@@ -185,7 +226,7 @@ async function loadActivityWeekdayChart() {
               const i = ctx.dataIndex;
               const avg = weekdayAverages[i].toFixed(2);
               const total = weekdayBuckets[i];
-              return [`Avg per week: ${avg}`, `Total games: ${total}`];
+              return [`Avg number of games: ${avg}`, `Total games: ${total}`];
             }
           }
         }
@@ -223,7 +264,7 @@ async function loadActivityWeekdayChart() {
 
 
 
-/* Chart 3   time of day activity     */
+/* Chart 7 Hourly Activity     */
 
 
 async function loadActivityClockChart() {
@@ -253,8 +294,8 @@ async function loadActivityClockChart() {
       datasets: [{
         data: hourBuckets,
         borderWidth: 2,
-        borderColor: "#FF6F3C",
-        backgroundColor: "rgba(255,111,60,0.7)"
+        borderColor: CHART_COLORS.ACTIVITY_BORDER,
+        backgroundColor: CHART_COLORS.ACTIVITY_BAR,
       }]
     },
     options: {
@@ -687,8 +728,8 @@ async function loadTeamRaceFrequencyChart() {
       datasets: [{
         label: "Selections",
         data: freqValues,
-        backgroundColor: "rgba(79,163,255,0.8)",
-        borderColor: "#4FA3FF",
+        backgroundColor:   CHART_COLORS.FREQUENCY_BAR,
+        borderColor: CHART_COLORS.FREQUENCY_BORDER,
         borderWidth: 1,
         borderRadius: 6
       }]
@@ -711,8 +752,8 @@ async function loadTeamRaceFrequencyChart() {
           datasets: [{
             label: "Win Rate (%)",
             data: wrValues,
-            backgroundColor: "rgba(57,208,112,0.8)",
-            borderColor: "#39D070",
+            backgroundColor: CHART_COLORS.WINRATE_BAR,
+            borderColor: CHART_COLORS.WINRATE_BORDER,
             borderWidth: 1,
             borderRadius: 6
           }]
@@ -721,7 +762,7 @@ async function loadTeamRaceFrequencyChart() {
         options: chartOptions(wrSorted, "Win Rate (%)", true) 
       });
 
-      toggleTeamChart.textContent = "Switch to Race Selections View";
+      toggleTeamChart.textContent = "Switch to Race Selection Rates View";
       labelEl.textContent = "Team Race Selection Win Rates";
     } else {
       currentChart = new Chart(ctx2d, {
@@ -818,8 +859,8 @@ async function loadMatchupWinrateChart() {
       datasets: [{
         label: "Winrate %",
         data: winrates,
-        backgroundColor: "rgba(57,208,112,0.8)",
-        borderColor: "#39D070",
+        backgroundColor: CHART_COLORS.WINRATE_BAR,
+        borderColor: CHART_COLORS.WINRATE_BORDER,
         borderWidth: 1,
         borderRadius: 6
       }]
@@ -1012,8 +1053,8 @@ async function loadWinrateChart() {
       datasets: [{
         label: "Winrate %",
         data: winrates,
-        backgroundColor: "rgba(57,208,112,0.8)",
-        borderColor: "#39D070",
+        backgroundColor: CHART_COLORS.WINRATE_BAR,
+        borderColor: CHART_COLORS.WINRATE_BORDER,
         borderWidth: 1,
         borderRadius: 6
       }]
@@ -1029,100 +1070,111 @@ async function loadWinrateChart() {
         legend: { display: false },
         tooltip: {
   enabled: false,
-  external: ctx => {
-    const tooltip = ctx.tooltip;
-    if (!tooltip || !tooltip.opacity) {
-      tooltipEl.style.opacity = 0;
-      return;
-    }
+ external: ctx => {
+  const tooltip = ctx.tooltip;
+  if (!tooltip || !tooltip.opacity) {
+    tooltipEl.style.opacity = 0;
+    return;
+  }
 
-    const index = tooltip.dataPoints?.[0]?.dataIndex;
-    if (index == null) return;
-    const g = groupData[index];
-    const title = g.label.toUpperCase();
-    const [r1, r2] = title.split("");
+  const index = tooltip.dataPoints?.[0]?.dataIndex;
+  if (index == null) return;
+  const g = groupData[index];
+  const title = g.label.toUpperCase();
+  const [r1, r2] = title.split("");
 
-    const wr = g.total ? ((g.wins / g.total) * 100).toFixed(1) : 0;
+  const wr = g.total ? ((g.wins / g.total) * 100).toFixed(1) : 0;
 
-    // Header (colored squares + title)
-    let html = `
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
-        <span style="width:10px;height:10px;background:${raceColors[r1.toLowerCase()]};display:inline-block;border-radius:2px;"></span>
-        <span style="width:10px;height:10px;background:${raceColors[r2.toLowerCase()]};display:inline-block;border-radius:2px;"></span>
-        <strong style="color:#fff;">${title}</strong>
-      </div>
-      <div style="
-  display:grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 4px 12px;
-  font-size:12px;
-  margin-left:0px;
-  margin-bottom:6px;
-  color:#eee;
-  font-weight:600;
-">
-  <span style="opacity:0.9;">Overall</span>
-  <span style="text-align:right;">${g.wins} wins, ${g.losses} losses</span>
-  <span style="text-align:right;font-weight:500;">${wr}%</span>
-</div>
-    `;
+  // ---------- Header ----------
+  let html = `
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+      <span style="width:10px;height:10px;background:${raceColors[r1.toLowerCase()]};display:inline-block;border-radius:2px;"></span>
+      <span style="width:10px;height:10px;background:${raceColors[r2.toLowerCase()]};display:inline-block;border-radius:2px;"></span>
+      <strong style="color:#fff;">${title}</strong>
+    </div>
+  `;
 
-    // Sub-rows in a table-like grid
-    html += `
-      <div style="
-        display:grid;
-        grid-template-columns: 1fr auto auto;
-        gap: 4px 12px;
-        font-size:12px;
-        margin-left:0px;
-      ">
-    `;
+ // OVERALL ROW
+html += `
+  <div style="
+    display:grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap: 4px 12px;
+    font-size:12px;
+    margin-bottom:6px;
+    color:#ccc;   /* matched brightness */
+    font-weight:600;
+  ">
+    <span>Overall</span>
+    <span style="text-align:right;">${g.wins} wins</span>
+    <span style="text-align:right;">${g.total} games</span>
+    <span style="text-align:right;">${wr}%</span>
+  </div>
+`;
 
-   const subEntries = g.keys
-  .map(key => {
-    const d = wlp[key];
-    if (!d) return null;
-    const total = Array.isArray(d) ? d[1] : (d.wins + d.losses);
-    const wins = Array.isArray(d) ? d[0] : d.wins;
-    const wr = total ? (wins / total) * 100 : 0;
-    return { key, wins, total, wr };
-  })
-  .filter(Boolean)
-  .sort((a, b) => b.wr - a.wr);
+// COLUMN HEADERS
+html += `
+  <div style="
+    display:grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap: 4px 12px;
+    font-size:12px;
+    margin-bottom:4px;
+    color:#ccc;   /* matched brightness */
+  ">
+    <span></span>
+    <span style="text-align:right;font-weight:600;">Wins</span>
+    <span style="text-align:right;font-weight:600;">Games</span>
+    <span style="text-align:right;font-weight:600;">WR%</span>
+`;
+
+  const subEntries = g.keys
+    .map(key => {
+      const d = wlp[key];
+      if (!d) return null;
+      const total = Array.isArray(d) ? d[1] : (d.wins + d.losses);
+      const wins = Array.isArray(d) ? d[0] : d.wins;
+      const wr = total ? (wins / total) * 100 : 0;
+      return { key, wins, total, wr };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.wr - a.wr);
 
 for (const e of subEntries) {
   html += `
     <span style="opacity:0.9;">${subLabels[e.key]}</span>
-    <span style="text-align:right;">${e.wins} wins, ${e.total - e.wins} losses</span>
-    <span style="text-align:right;font-weight:500;">${e.wr.toFixed(1)}%</span>
+    <span style="text-align:right;">${e.wins}</span>
+    <span style="text-align:right;">${e.total}</span>
+    <span style="text-align:right;">${e.wr.toFixed(1)}%</span>
   `;
 }
 
-    html += `</div>`;
+html += `</div>`;
 
-    tooltipEl.innerHTML = html;
+  tooltipEl.innerHTML = html;
 
-    const rect = ctx.chart.canvas.getBoundingClientRect();
-    tooltipEl.style.opacity = 1;
-    let left = rect.left + window.pageXOffset + tooltip.caretX + 12;
-let top = rect.top + window.pageYOffset + tooltip.caretY;
+  // ---------- Positioning ----------
+  const rect = ctx.chart.canvas.getBoundingClientRect();
+  tooltipEl.style.opacity = 1;
 
-// Prevent tooltip overflow on right edge
-const tooltipRect = tooltipEl.getBoundingClientRect();
-const screenWidth = window.innerWidth;
-if (left + tooltipRect.width + 20 > screenWidth) {
-  left = rect.left + window.pageXOffset + tooltip.caretX - tooltipRect.width - 12;
-}
+  let left = rect.left + window.pageXOffset + tooltip.caretX + 12;
+  let top = rect.top + window.pageYOffset + tooltip.caretY;
 
-// Prevent tooltip overflow on bottom edge
-const screenHeight = window.innerHeight;
-if (top + tooltipRect.height + 20 > window.pageYOffset + screenHeight) {
-  top = window.pageYOffset + screenHeight - tooltipRect.height - 20;
-}
+  const tooltipRect = tooltipEl.getBoundingClientRect();
+  const screenWidth = window.innerWidth;
 
-tooltipEl.style.left = `${left}px`;
-tooltipEl.style.top = `${top}px`;
+  if (left + tooltipRect.width + 20 > screenWidth) {
+    left = rect.left + window.pageXOffset + tooltip.caretX - tooltipRect.width - 12;
   }
+
+  const screenHeight = window.innerHeight;
+  if (top + tooltipRect.height + 20 > window.pageYOffset + screenHeight) {
+    top = window.pageYOffset + screenHeight - tooltipRect.height - 20;
+  }
+
+  tooltipEl.style.left = `${left}px`;
+  tooltipEl.style.top = `${top}px`;
+}
 }
       }
     }

@@ -17,11 +17,8 @@
     }
 
     body {
-      margin: 0;
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: Arial, sans-serif;
-      -webkit-font-smoothing: antialiased;
+      
+
       padding: 0 180px;                             /* hvor mye luft på sidene */
     }
 
@@ -31,7 +28,7 @@
       background-color: var(--panel);
       border-radius: 10px;
       border: 1px solid var(--border);
-      color: var(--text);
+      color: var(--text); /* Overskriften til sidepanel */
     }
 
     .boks-header {
@@ -89,29 +86,7 @@
       color: var(--muted);
     }
 
-    /* HTML tooltip styling */
-    .chartjs-tooltip {
-      position: absolute;
-      background: #1f1f1f;
-      border: 1px solid #333;
-      border-radius: 8px;
-      color: #ddd;
-      padding: 8px 12px;
-      font-size: 0.9em;
-      pointer-events: none;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-      transform: translate(-50%, 0);
-      max-width: 260px;
-      z-index: 10;
-    }
 
-    .chartjs-tooltip .small {
-      font-size: 0.8em;
-      color: #aaa;
-      margin-top: 4px;
-      padding-left: 8px;
-      line-height: 1.4;
-    }
 
 
 
@@ -126,9 +101,6 @@
     }
 
 
-canvas#irsChart { /*gammel*/
-  max-width: 570px;
-}
 
 
 canvas#irsChart {
@@ -237,7 +209,7 @@ padding: 0 5%;
 <div class="boks-grid">
   <div class="info-boks">
     <div class="infoboks-tittel">Team Race Selection Rates and Win Rates</div>
-    <div class="infoboks-tekst">How often was each team race combination selected? Which team race combination has the highest winrate?</div>  
+    <div class="infoboks-tekst">How often was each team race combination selected? Which team race combination had the highest winrate?</div>  
   </div>
 
   <div class="grafikk-boks">
@@ -302,7 +274,7 @@ padding: 0 5%;
 
 
 
-    <!-- Chart 1: Activity level. id = activityChart -->
+    <!-- Chart 7: Activity level. id = activityChart -->
     <div class="boks-grid">
       <div class="info-boks">
         <div class="infoboks-tittel">Level of activity during the season</div>
@@ -323,7 +295,7 @@ padding: 0 5%;
     <div class="boks-grid">
       <div class="info-boks">
         <div class="infoboks-tittel">Activity during the week</div>
-        <div class="infoboks-tekst">Average number of games / day.</div>
+        <div class="infoboks-tekst">Average number of games / weekday.</div>
       </div>
 
       <div class="grafikk-boks">

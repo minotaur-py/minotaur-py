@@ -99,7 +99,7 @@
   <script>
     async function loadLog() {
       try {
-        const res = await fetch("data/log.json", { cache: "no-store" });
+        const res = await fetch("./data/log.json", { cache: "no-store" });
         const logs = await res.json();
         const container = document.getElementById("log-container");
         container.innerHTML = "";

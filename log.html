@@ -96,61 +96,58 @@
     </div>
   </section>
 
-  <script>
-    async function loadLog() {
-      try {
-        const res = await fetch("./data/log.json", { cache: "no-store" });
-        const logs = await res.json();
-        const container = document.getElementById("log-container");
-        container.innerHTML = "";
+<script>
+async function loadLog() {
+  const container = document.getElementById("log-container");
+  container.innerHTML = "<p>Loading…</p>";
 
-        logs.forEach((entry, idx) => {
-          const div = document.createElement("div");
-          div.className = "log-entry";
+  try {
+    const res = await fetch("./data/log.json", { cache: "no-store" });
+    if (!res.ok) throw new Error("Network response not ok");
 
-          // Convert unix timestamp to readable date
-          const date = new Date(entry.start_time * 1000);
-          const nice = date.toLocaleString();
+    const logs = await res.json();
+    container.innerHTML = ""; // clear loading text
 
-          div.innerHTML = `
-            <h3>Run #${idx + 1}</h3>
-            <div class="kv"><strong>Status:</strong> ${entry.status}</div>
-            <div class="kv"><strong>Start Time:</strong> ${nice}</div>
-            <div class="kv"><strong>Mode Selected:</strong> ${entry.mode_selected}</div>
-            <div class="kv"><strong>Mode Actual:</strong> ${entry.mode_actual}</div>
-            <div class="kv"><strong>Games Checked:</strong> ${entry.games_checked}</div>
-            <div class="kv"><strong>New Customs:</strong> ${entry.new_customs}</div>
-            <div class="kv"><strong>Processed:</strong> ${entry.new_customs_processed}</div>
-            <div class="kv"><strong>Duration:</strong> ${entry.duration.toFixed(3)} s</div>
-          `;
+    logs.forEach((entry, idx) => {
+      const div = document.createElement("div");
+      div.className = "log-entry";
 
-          container.appendChild(div);
-        });
+      // Safely convert timestamp
+      const date = entry.start_time ? new Date(entry.start_time * 1000) : null;
+      const nice = date ? date.toLocaleString() : "(no start time)";
 
-      } catch (err) {
-        document.getElementById("log-container").innerHTML =
-          "<p>Failed to load log.json.</p>";
-      }
+      // Safely handle optional fields
+      const modeSelected = entry.mode_selected ?? "(n/a)";
+      const modeActual = entry.mode_actual ?? "(n/a)";
+      const gamesChecked = entry.games_checked ?? "(n/a)";
+      const newCustoms = entry.new_customs ?? "(n/a)";
+      const newCustomsProcessed = entry.new_customs_processed ?? "(n/a)";
+      const duration = entry.duration != null ? entry.duration.toFixed(3) + " s" : "(n/a)";
+      const status = entry.status ?? "(unknown)";
 
+      div.innerHTML = `
+        <h3>Run #${idx + 1}</h3>
+        <div class="kv"><strong>Status:</strong> ${status}</div>
+        <div class="kv"><strong>Start Time:</strong> ${nice}</div>
+        <div class="kv"><strong>Mode Selected:</strong> ${modeSelected}</div>
+        <div class="kv"><strong>Mode Actual:</strong> ${modeActual}</div>
+        <div class="kv"><strong>Games Checked:</strong> ${gamesChecked}</div>
+        <div class="kv"><strong>New Customs:</strong> ${newCustoms}</div>
+        <div class="kv"><strong>Processed:</strong> ${newCustomsProcessed}</div>
+        <div class="kv"><strong>Duration:</strong> ${duration}</div>
+      `;
 
-    try {
-  const res = await fetch("./data/log.json", { cache: "no-store" });
-  console.log("Fetch status:", res.status);
-  const text = await res.text();
-  console.log("Raw JSON:", text);
-  const logs = JSON.parse(text);
-} catch (e) {
-  console.error("Error:", e);
+      container.appendChild(div);
+    });
+
+  } catch (err) {
+    console.error("Error loading or rendering log.json:", err);
+    container.innerHTML = "<p>Failed to load log.json.</p>";
+  }
 }
 
-
-
-      
-    }
-
-    loadLog();
-  </script>
+loadLog();
+</script>
 
 </body>
-
 </html>

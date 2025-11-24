@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Process Log</title>
+  <style>
+    :root {
+      --bg: #121212;
+      --panel: #1f1f1f;
+      --panel-3: #2a2a2a;
+      --border: #2a2a2a;
+      --text: #ccc;
+      --muted: #aaa;
+      --accent: #89CFF0;
+    }
+
+    body {
+      padding: 0 180px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+    }
+
+    a.back-link {
+      color: var(--accent);
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 20px;
+    }
+
+    #topp-boks {
+      margin: 30px 0 24px;
+      padding: 30px 35px;
+      background-color: var(--panel);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .topp-boks-div {
+      background-color: var(--panel-3);
+      padding: 16px 20px;
+      margin: -30px -35px 20px -35px;
+      border-bottom: 1px solid #1f1f1f;
+    }
+
+    #overskrift {
+      font-size: 1.9em;
+      color: #fff;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .log-entry {
+      background-color: #161616;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px;
+      margin-bottom: 22px;
+    }
+
+    .log-entry h3 {
+      margin-top: 0;
+      color: var(--accent);
+      font-size: 1.35em;
+    }
+
+    .kv {
+      margin: 4px 0;
+      color: var(--muted);
+    }
+
+    @media (max-width: 1600px) {
+      body {
+        padding: 0 5%;
+      }
+    }
+
+    p { line-height: 1.6; color: var(--muted); }
+  </style>
+</head>
+<body>
+
+  <a href="index.html" class="back-link">← Back to leaderboard</a>
+
+  <section id="topp-boks">
+    <div class="topp-boks-div">
+      <h2 id="overskrift">System Log</h2>
+    </div>
+
+    <p>This page shows past runs of the customs-processing script, pulled from <code>data/log.json</code>.</p>
+
+    <div id="log-container">
+      <p>Loading log entries…</p>
+    </div>
+  </section>
+
+  <script>
+    async function loadLog() {
+      try {
+        const res = await fetch("data/log.json", { cache: "no-store" });
+        const logs = await res.json();
+        const container = document.getElementById("log-container");
+        container.innerHTML = "";
+
+        logs.forEach((entry, idx) => {
+          const div = document.createElement("div");
+          div.className = "log-entry";
+
+          // Convert unix timestamp to readable date
+          const date = new Date(entry.start_time * 1000);
+          const nice = date.toLocaleString();
+
+          div.innerHTML = `
+            <h3>Run #${idx + 1}</h3>
+            <div class="kv"><strong>Status:</strong> ${entry.status}</div>
+            <div class="kv"><strong>Start Time:</strong> ${nice}</div>
+            <div class="kv"><strong>Mode Selected:</strong> ${entry.mode_selected}</div>
+            <div class="kv"><strong>Mode Actual:</strong> ${entry.mode_actual}</div>
+            <div class="kv"><strong>Games Checked:</strong> ${entry.games_checked}</div>
+            <div class="kv"><strong>New Customs:</strong> ${entry.new_customs}</div>
+            <div class="kv"><strong>Processed:</strong> ${entry.new_customs_processed}</div>
+            <div class="kv"><strong>Duration:</strong> ${entry.duration.toFixed(3)} s</div>
+          `;
+
+          container.appendChild(div);
+        });
+
+      } catch (err) {
+        document.getElementById("log-container").innerHTML =
+          "<p>Failed to load log.json.</p>";
+      }
+    }
+
+    loadLog();
+  </script>
+
+</body>
+</html>

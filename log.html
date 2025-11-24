@@ -105,36 +105,41 @@ async function loadLog() {
     const res = await fetch("./data/log.json", { cache: "no-store" });
     if (!res.ok) throw new Error("Network response not ok");
 
-    const logs = await res.json();
+    const text = await res.text();
+    console.log("Raw JSON text:", text); // DEBUG
+    const logs = JSON.parse(text);
+
     container.innerHTML = ""; // clear loading text
 
     logs.forEach((entry, idx) => {
       const div = document.createElement("div");
       div.className = "log-entry";
 
-      // Safely convert timestamp
-      const date = entry.start_time ? new Date(entry.start_time * 1000) : null;
-      const nice = date ? date.toLocaleString() : "(no start time)";
+      // Convert unix timestamp safely
+      let nice = "(no start time)";
+      if (entry.start_time != null) {
+        try {
+          nice = new Date(entry.start_time * 1000).toLocaleString();
+        } catch (e) { console.warn("Invalid start_time:", entry.start_time); }
+      }
 
-      // Safely handle optional fields
-      const modeSelected = entry.mode_selected ?? "(n/a)";
-      const modeActual = entry.mode_actual ?? "(n/a)";
-      const gamesChecked = entry.games_checked ?? "(n/a)";
-      const newCustoms = entry.new_customs ?? "(n/a)";
-      const newCustomsProcessed = entry.new_customs_processed ?? "(n/a)";
-      const duration = entry.duration != null ? entry.duration.toFixed(3) + " s" : "(n/a)";
-      const status = entry.status ?? "(unknown)";
+      // Safely convert optional numeric fields
+      const safeNumber = (val) => (typeof val === "number" ? val : "(n/a)");
+
+      const durationStr = safeNumber(entry.duration) !== "(n/a)" 
+        ? safeNumber(entry.duration).toFixed(3) + " s" 
+        : "(n/a)";
 
       div.innerHTML = `
         <h3>Run #${idx + 1}</h3>
-        <div class="kv"><strong>Status:</strong> ${status}</div>
+        <div class="kv"><strong>Status:</strong> ${entry.status ?? "(unknown)"}</div>
         <div class="kv"><strong>Start Time:</strong> ${nice}</div>
-        <div class="kv"><strong>Mode Selected:</strong> ${modeSelected}</div>
-        <div class="kv"><strong>Mode Actual:</strong> ${modeActual}</div>
-        <div class="kv"><strong>Games Checked:</strong> ${gamesChecked}</div>
-        <div class="kv"><strong>New Customs:</strong> ${newCustoms}</div>
-        <div class="kv"><strong>Processed:</strong> ${newCustomsProcessed}</div>
-        <div class="kv"><strong>Duration:</strong> ${duration}</div>
+        <div class="kv"><strong>Mode Selected:</strong> ${safeNumber(entry.mode_selected)}</div>
+        <div class="kv"><strong>Mode Actual:</strong> ${safeNumber(entry.mode_actual)}</div>
+        <div class="kv"><strong>Games Checked:</strong> ${safeNumber(entry.games_checked)}</div>
+        <div class="kv"><strong>New Customs:</strong> ${safeNumber(entry.new_customs)}</div>
+        <div class="kv"><strong>Processed:</strong> ${safeNumber(entry.new_customs_processed)}</div>
+        <div class="kv"><strong>Duration:</strong> ${durationStr}</div>
       `;
 
       container.appendChild(div);

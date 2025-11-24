@@ -131,10 +131,26 @@
         document.getElementById("log-container").innerHTML =
           "<p>Failed to load log.json.</p>";
       }
+
+
+    try {
+  const res = await fetch("./data/log.json", { cache: "no-store" });
+  console.log("Fetch status:", res.status);
+  const text = await res.text();
+  console.log("Raw JSON:", text);
+  const logs = JSON.parse(text);
+} catch (e) {
+  console.error("Error:", e);
+}
+
+
+
+      
     }
 
     loadLog();
   </script>
 
 </body>
+
 </html>

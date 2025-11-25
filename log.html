@@ -111,7 +111,7 @@ async function loadLog() {
     const text = await res.text();
     console.log("Raw JSON text:", text); // DEBUG
     const logs = JSON.parse(text);
-
+    logs.reverse();
     container.innerHTML = ""; // clear loading text
 
     logs.forEach((entry, idx) => {

@@ -134,7 +134,7 @@ async function loadLog() {
         : "(n/a)";
 
       div.innerHTML = `
-        <h3>Run #${idx + 1}</h3>
+        <h3>Run #${logs.length - idx}</h3>
         <div class="kv"><strong>Status:</strong> ${entry.status ?? "(unknown)"}</div>
         <div class="kv"><strong>Start Time:</strong> ${nice}</div>
         <div class="kv"><strong>Mode Selected:</strong> ${safeNumber(entry.mode_selected)}</div>

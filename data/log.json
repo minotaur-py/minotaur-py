@@ -636,5 +636,24 @@
         "new_customs": 0,
         "new_customs_processed": 0,
         "duration": 16.813934326171875
+    },
+    {
+        "status": "Process crash.",
+        "start_time": 1764175533.2425494,
+        "mode_selected": 2,
+        "mode_actual": 2,
+        "games_checked": 56,
+        "new_customs": 0,
+        "new_customs_processed": 0
+    },
+    {
+        "status": "ALL OK.",
+        "start_time": 1764187938.1537242,
+        "mode_selected": 2,
+        "mode_actual": 2,
+        "games_checked": 108,
+        "new_customs": 2,
+        "new_customs_processed": 3,
+        "duration": 10.375566959381104
     }
 ]

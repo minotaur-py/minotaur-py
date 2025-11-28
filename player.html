@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Player Profile</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* --------------------------
+       Variables — tweak here only
+       -------------------------- */
+    :root{
+      
+      --panel: #1f1f1f;             /* øvre panel  */
+      
+      --panel-3: #2a2a2a;           /* brukes av header øvre panel */
+      --border: #2a2a2a;
+      --muted: #aaa;                 /* brukes av duration  A570FF    */
+      
+      --accent: #89CFF0;              /* spillernavn */
+      --row-odd: #1b1b1b;
+      --row-even: #242424;
+      --match-header-bg: #2a2a2a;       /* table header */
+      --match-border: #222;
+      --shadow: rgba(0,0,0,0.45);
+    }
+
+    /* --------------------------
+       Page base
+       -------------------------- */
+    html,body { height:100%; }
+    body {
+      
+
+      padding: 0 180px; 
+    }
+
+
+    /* --------------------------
+       Player overview infoboks med tre felter
+       -------------------------- */
+    #player-overview { 
+      margin: 30px 0 24px;
+      padding: 30px 35px;
+      background-color: var(--panel);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      
+    }
+
+    .overview-header { /*Linjen der spillernavnet står */      
+      background-color: var(--panel-3);
+      padding: 16px 20px;
+      margin: -30px -35px 20px -35px;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+      border-bottom: 1px solid #1f1f1f;
+      
+    }
+
+    #playerNameHeader { 
+      font-size: 1.9em; 
+      color: #fff;
+      font-weight:700; 
+    }
+    
+   
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: 1fr 2fr 1fr;
+      gap: 30px;                        /* Horisontal gap mellom de tre boksene*/
+      align-items: start;
+      padding-top: 8px;
+    }
+
+    .overview-info,
+    .overview-chart {
+      background-color: #161616;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+   
+    }
+
+    .overview-info { padding: 20px; display:flex; flex-direction:column; gap:12px; }
+    .playeroverview-title { font-size:1.15em; font-weight:600; color:#fff; margin-bottom:6px; }
+    .overview-info .info-row {
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      color: #dcdcdc;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+
+.overview-info { /*INTEGRER MED OVER*/
+  line-height: 1.8; /* increased spacing */
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  background-blend-mode: overlay;
+  
+}
+
+
+
+    .overview-info .info-row:last-child { border-bottom: none; }
+    .overview-info .value { font-size:1.15em; color:#cfcfcf; }
+
+    .overview-chart { display:flex; flex-direction:column; align-items:center; justify-content:flex-start; min-height:380px; padding:16px; }
+    .overview-chart canvas { width:100% !important; height: calc(100% - 30px) !important; }
+    .chart-label { margin-top:12px; font-size:.95em; color:var(--muted); }
+
+    @media (max-width:1000px){
+      body{ padding:0 30px; }
+      .overview-grid{ grid-template-columns: 1fr; gap: 20px; }
+      .overview-chart{ min-height:250px; }
+      .overview-chart canvas{ height:180px !important; }
+    }
+
+    /* --------------------------
+       Match header and rows
+       IMPORTANT: keep grid-template-columns
+       IDENTICAL for header & rows to avoid
+       horizontal misalignment.
+       -------------------------- */
+
+    .match-header {
+      display: grid;
+      grid-template-columns: 150px 320px 1fr 320px 1fr 150px; 
+      align-items: center;
+      gap: 30px;
+      font-weight: bold;
+      font-size: .9em;
+      letter-spacing: .05em;
+      color: #eee;
+      background-color: var(--match-header-bg);
+      padding: 10px 15px;
+      text-align: center;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+      border-bottom: 1px solid #1f1f1f;
+    }
+
+    .match-header .team-header {
+      display: grid;
+      grid-template-columns: 1fr 120px;
+      column-gap: 10px;
+      align-items: center;
+      text-align:left;
+      padding:0;
+    }
+
+    .mmr-group { display:grid; grid-template-columns: 60px 60px; justify-self:end; width:120px; }
+    .team-title { text-align:left; padding-left:8px; }
+    .match-status { text-align:center; font-weight:600; color:var(--text); }
+    .match-status .ago{ display:block; font-size:.8em; color:var(--muted); font-weight:400; }
+
+    /* matches container wraps the rows and creates a unified block */
+    #matches {
+      margin-bottom: 60px;
+      border: 1px solid var(--border);   
+      border-top: none;                   
+      border-bottom-left-radius: 10px;
+      border-bottom-right-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px var(--shadow);
+      background-color: #161616;
+    }
+
+
+
+.match-row {
+  display: grid;
+  grid-template-columns: 150px 320px 1fr 320px 1fr 150px; /* unchanged */
+  align-items: center;
+  gap: 30px;
+  padding: 12px 15px;
+  margin: 0;
+  border-bottom: 1px solid var(--match-border);
+  background-color: var(--row-odd);
+  transition: background-color .08s ease;
+}
+
+.match-row:nth-child(even) {
+  background-color: var(--row-even);
+}
+
+
+    /* player cells — keep your existing structure, just color tweaks */
+    .team-column {
+      display: grid;
+      grid-template-columns: auto 1fr 60px 60px;
+      align-items: start;
+      gap: .25rem .5rem;
+    }
+
+    .player-card { display: contents; } /* your scripts rely on this */
+    .player-name {
+      color: var(--accent) !important; /* hvorfor behov important? */
+      text-decoration: none;
+      font-size: 1.1rem;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+      font-weight:500;
+    }
+    .player-name:hover { text-decoration: underline; }
+
+    .player-rating { font-size: 1rem; color: #ddd; }
+    .player-change { font-size: .8rem; line-height:1; margin-left:2px; color: #bbb; }
+    .player-change::before { content:'('; color:#fff; }
+    .player-change::after  { content:')'; color:#fff; }
+
+    .race-icon { width:20px; height:20px; object-fit:contain; }
+    .match-info { text-align:center; font-size:1.05em; color:#ccc; }
+    .duration { font-size:.8em; color:var(--muted); padding-top:4px; }
+
+    /* Small vertical padding match between header and first row
+       — ensures the border radii visually line up */
+    .match-header { padding-left:15px; padding-right:15px; }
+    .match-row  { padding-left:15px; padding-right:15px; }
+
+
+
+
+#playeroverview-summary {
+  margin-top: -0.5em;
+}
+
+
+#playeroverview-summary {
+  margin-top: -0.3em;
+  font-size: 1.1em;      /* slightly larger font */
+  line-height: 1.25;     /* comfortable spacing between lines */
+  color: #ddd;           /* consistent with rest of theme */
+
+}
+
+
+@media (max-width: 1290px) {
+  .match-header,
+  .match-row {
+    grid-template-columns: 50px 1fr 1px 1fr 1px 90px;
+    gap: 10px;
+  }
+}
+
+
+
+
+
+
+.race-icon {
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Show/Hide container */
+#extra-stats {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .4s ease;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 25px;
+  margin-top: 20px;
+  padding: 0 20px;
+}
+
+
+
+
+
+
+
+/* When opened */
+#extra-stats.open {
+  max-height: 900px; /* large enough to reveal 4 charts */
+  padding-bottom: 20px;
+}
+
+/* Chart boxes inside expansion */
+.extra-chart {
+  background-color: #161616;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  min-height: 260px;
+}
+
+/* Button styling */
+.extra-stats-btn {
+  margin-top: 15px;
+  padding: 10px 12px;
+  background-color: #2b2b2b;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: #eee;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+}
+
+.extra-stats-btn:hover {
+  background-color: #3a3a3a;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+
+#extraChart1 {
+    border: 2px solid red !important; /* Temporarily add a bright border */
+}
+*/
+
+
+
+
+
+
+
+
+
+
+/* --- Chart Mode Button --- */
+.chart-mode-btn {
+  padding: 6px 10px;
+  font-size: 0.85em;
+  background-color: #2b2b2b;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: #eee;
+  cursor: pointer;
+}
+.chart-mode-btn:hover {
+  background-color: #3a3a3a;
+}
+
+/* --- Footer Layout (label centered, button right) --- */
+.chart-footer {
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+/* Center the label perfectly */
+.chart-footer .chart-label {
+  flex: 1;
+  text-align: center;
+  font-size: .95em;
+  color: var(--muted);
+}
+
+/* Push the button all the way to the right */
+.chart-footer button {
+  margin-left: auto;
+}
+
+/* Balance the layout with left-side phantom spacing */
+.chart-footer::before {
+  content: "";
+  width: 80px; /* visually matches button width */
+  display: block;
+}
+
+/* --- CHART BOX --- */
+/* IMPORTANT: fixed-height box + fixed-height canvas prevents gravity-like collapse */
+.extra-chart {
+  min-height: 320px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 20px 81px 20px;
+}
+
+
+.extra-chart {
+ 
+  
+  
+  min-height: 360px;       /* make it taller */
+
+
+  gap: 10px;               /* spacing between canvas and footer */
+}
+
+
+
+
+
+
+
+/* --- CHART CANVAS --- */
+/* Lock height to prevent infinite downward flow */
+.extra-chart canvas {
+  width: 100%;           /* Responsive width */
+  height: 100%;          /* Match parent height */
+  display: block;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-link">← Back to leaderboard</a>
+
+<section id="player-overview">
+
+  <div class="overview-header">
+    <span id="playerNameHeader">Loading...</span>
+  </div>
+
+  <div class="overview-grid">
+    <!-- LEFT COLUMN -->
+    <div class="overview-info">
+      <div class="playeroverview-title">Player Overview:</div>
+      <div id="playeroverview-summary">
+        <span id="playeroverview-text">Loading stats...</span>
+      </div>
+
+      <!-- New toggle button -->
+      <button id="toggleExtraStats" class="extra-stats-btn">
+        Show additional statistics
+      </button>
+    </div>
+
+    <!-- MIDDLE -->
+    <div class="overview-chart">
+      <canvas id="mmrChart"></canvas>
+      <div class="chart-label">MMR Progression</div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="overview-chart">
+      <canvas id="raceChart"></canvas>
+      <div class="chart-label">Race Selection</div>
+    </div>
+  </div>
+
+  <!-- COLLAPSIBLE SECTION (initially hidden) -->
+  <div id="extra-stats">
+    <div class="extra-chart">
+  <canvas id="extraChart1" height="260"></canvas>
+
+  <div class="chart-footer">
+    <div class="chart-label">MMR per Game</div>
+
+    <!-- Your new toggle button -->
+    <button id="chartModeToggle" class="chart-mode-btn" style="display:none;">
+      Show MMR per Game
+    </button>
+  </div>
+</div>
+    <div class="extra-chart"><canvas id="extraChart2"></canvas></div>
+    <div class="extra-chart"><canvas id="extraChart3"></canvas></div>
+    <div class="extra-chart"><canvas id="extraChart4"></canvas></div>
+  </div>
+
+</section>
+
+
+
+
+
+  <section id="match-section">
+    <div class="match-header">
+    <div>RESULT</div>
+
+    <div class="team-header">
+      <div class="team-title">HOME TEAM</div>
+      <div class="mmr-group">
+        <div>MMR</div>
+        <div></div>
+      </div>
+    </div>
+
+    <div></div>
+
+    <div class="team-header">
+      <div class="team-title">AWAY TEAM</div>
+      <div class="mmr-group">
+        <div>MMR</div>
+        <div></div>
+      </div>
+    </div>
+
+    <div></div>
+
+    <div>MAP / DURATION</div>
+  </div>
+
+     </div>
+    <div id="matches"><!-- JS will append .match-row items here --></div>
+  </section>
+
+  <script src="script.js"></script>
+  <script src="player.js?v=2"></script>
+</body>
+</html>

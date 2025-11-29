@@ -773,5 +773,15 @@
         "new_customs": 0,
         "new_customs_processed": 17,
         "duration": 10.885395526885986
+    },
+    {
+        "status": "ALL OK.",
+        "start_time": 1764377287.157682,
+        "mode_selected": 2,
+        "mode_actual": 2,
+        "games_checked": 120,
+        "new_customs": 8,
+        "new_customs_processed": 25,
+        "duration": 21.667288780212402
     }
 ]

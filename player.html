@@ -293,7 +293,7 @@
 
 /* When opened */
 #extra-stats.open {
-  max-height: 900px; /* large enough to reveal 4 charts */
+  max-height: 1600px; /* large enough to reveal 4 charts */
   margin-top: 30px;
   padding-bottom: 73px;
   
@@ -420,25 +420,36 @@
 /* --- CHART BOX --- */
 
 .extra-chart {
-  min-height: 320px;
+  min-height: 360px;
   position: relative;
   display: flex;
   flex-direction: column;
   padding: 20px 20px 72px 20px;
+  gap: 10px;
 }
 
 
-.extra-chart {
- 
-  
-  
-  min-height: 360px;       /* make it taller */
 
+/* Chart boxes inside expansion */
+.extra-chart-tall {
+  background-color: #161616;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
 
-  gap: 10px;               /* spacing between canvas and footer */
 }
 
 
+
+
+.extra-chart-tall {
+  min-height: 1060px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 20px 72px 20px;
+  gap: 10px;
+}
 
 
 
@@ -447,6 +458,15 @@
 /* --- CHART CANVAS --- */
 /* Lock height to prevent infinite downward flow */
 .extra-chart canvas {
+  width: 100%;           /* Responsive width */
+  height: 100%;          /* Match parent height */
+  display: block;
+  
+}
+
+/* --- CHART CANVAS --- */
+/* Lock height to prevent infinite downward flow */
+.extra-chart-tall canvas {
   width: 100%;           /* Responsive width */
   height: 100%;          /* Match parent height */
   display: block;
@@ -501,7 +521,7 @@
   <!-- COLLAPSIBLE SECTION (initially hidden) -->
 <div id="extra-stats">
     <div class="extra-chart">
-        <canvas id="extraChart1" height="260"></canvas>
+        <canvas id="extraChart1"  height="260"></canvas>
 
         <div class="chart-footer">
             <div class="chart-label" id="extraChart1Label">Loading...</div>
@@ -525,7 +545,21 @@
         </div>
     </div>
     
-    <div class="extra-chart"><canvas id="extraChart3"></canvas></div>
+
+    <div class="extra-chart-tall">
+        <canvas id="extraChart3" height="260"></canvas> 
+        
+        <div class="chart-footer">
+            <div class="chart-label" id="extraChart3Label">Loading...</div>
+            
+            <button id="chartModeToggle3" class="chart-mode-btn" style="display: none;">
+                Show MMR per Game
+            </button>
+        </div>
+    </div>
+
+
+    
     <div class="extra-chart"><canvas id="extraChart4"></canvas></div>
 </div>
 

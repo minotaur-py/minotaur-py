@@ -571,11 +571,12 @@ if (window.location.pathname.includes("player.html")) {
       ? "Hide additional statistics"
       : "Show additional statistics";
 
-    if (opened && !chartLoaded) {
+if (opened && !chartLoaded) {
   const playerId = new URLSearchParams(window.location.search).get("id");
   if (playerId) {
-    ensureChart(playerId);   // loads PWR chart
-    loadMatchupChart(playerId); // loads PWM chart
+    ensureChart(playerId);        // PWR
+    loadMatchupChart(playerId);   // PWM
+    loadDrawer3Chart(playerId);   // NEW: drawer3
     chartLoaded = true;
   }
 }
@@ -1130,11 +1131,311 @@ function matchupChartOptions(mode, list, barThickness = 44) {
               ? (mode === "total" ? "MMR lost" : "MMR lost per game")
               : (mode === "total" ? "MMR gained" : "MMR gained per game");
 
+          // Determine player + teammate letters
+
+
+// Extract races directly from the label "(P)Z", "(T)P", etc.
+const match = label.match(/^\((.)\)(.)$/);
+
+let raceA = null; // first box
+let raceB = null; // second box
+
+if (match) {
+  raceA = match[1].toLowerCase();  // primary race
+  raceB = match[2].toLowerCase();  // secondary race
+} else {
+  // Fallback: unknown formatting
+  raceA = "p";
+  raceB = "z";
+}
+
+const colors = {
+  p: "#EBD678",
+  t: "#53B3FC",
+  z: "#C1A3F5"
+};
+
+const c1 = colors[raceA] || "#999";
+const c2 = colors[raceB] || "#999";
+
+tooltipEl.innerHTML = `
+  <div style="display:flex;align-items:center;gap:6px;font-weight:bold;margin-bottom:3px;">
+    <span style="width:10px;height:10px;background:${c1};display:inline-block;border-radius:2px;"></span>
+    <span style="width:10px;height:10px;background:${c2};display:inline-block;border-radius:2px;"></span>
+    <span>${label}</span>
+  </div>
+
+  <div style="font-family:monospace; opacity:0.85;">
+    ${wins} wins, ${losses} losses, ${wr.toFixed(1)}%. ${mmrAbs} ${mmrLabel}.
+  </div>
+`;
+          const rect = ctx.chart.canvas.getBoundingClientRect();
+          const mouse = ctx.chart.tooltip?._eventPosition;
+          const x = mouse ? mouse.x : tooltip.caretX;
+          const y = mouse ? mouse.y : tooltip.caretY;
+
+          tooltipEl.style.left = (rect.left + window.pageXOffset + x + 14) + "px";
+          tooltipEl.style.top  = (rect.top + window.pageYOffset + y - 12) + "px";
+          tooltipEl.style.opacity = 1;
+        }
+      }
+    },
+
+    scales: {
+      x: {
+        beginAtZero: true,
+        grid: { color: "#222" },
+        ticks: { color: "#AAA" }
+      },
+      y: {
+        ticks: { color: "#AAA" }
+      }
+    }
+  };
+}
+
+
+
+
+/* slutten av pwm / starten av drawer3 */
+
+
+
+
+
+
+
+
+
+let drawer3ChartInstance = null;
+let drawer3DataCache = null;
+
+async function loadDrawer3Chart(playerId) {
+  const season = await getCurrentSeason();
+  const res = await fetchNoCache(`data/seasons/${season}/statistics_data.json`);
+  if (!res.ok) return;
+
+  const data = await res.json();
+  const raw = data.drawer3?.[playerId];
+  if (!raw) return;
+
+  drawer3DataCache = parseDrawer3Data(raw);
+  drawDrawer3Total(drawer3DataCache);
+
+  const labelEl = document.getElementById("extraChart3Label");
+  const toggleEl = document.getElementById("chartModeToggle3");
+
+  labelEl.textContent = "Total MMR Gained for Each Matchup";
+  toggleEl.dataset.mode = "total";
+  toggleEl.textContent = "Show MMR per Game";
+  toggleEl.style.display = "inline-block";
+
+  toggleEl.onclick = () => {
+    const m = toggleEl.dataset.mode;
+    if (m === "total") {
+      drawDrawer3PerGame(drawer3DataCache);
+      toggleEl.dataset.mode = "pergame";
+      toggleEl.textContent = "Show Total MMR Gained";
+      labelEl.textContent = "MMR Gained per Game for Each Matchup";
+    } else {
+      drawDrawer3Total(drawer3DataCache);
+      toggleEl.dataset.mode = "total";
+      toggleEl.textContent = "Show MMR per Game";
+      labelEl.textContent = "Total MMR Gained for Each Matchup";
+    }
+  };
+}
+
+// ======================================================================
+// Parse drawer3 → list usable by charts
+// ======================================================================
+function parseDrawer3Data(obj) {
+
+  function asLabel(key5) {
+    // key5 example: z t z p t
+    if (!key5 || key5.length < 5) return "";
+
+    const p = key5[0].toUpperCase();
+    const r1 = key5[1].toUpperCase();
+    const r2 = key5[2].toUpperCase();
+    const o1 = key5[3].toUpperCase();
+    const o2 = key5[4].toUpperCase();
+
+    // The first three work identically to your pwm logic:
+    let triple = "";
+    if (r1 === r2) {
+      triple = `(${r1})${r2}`;
+    } else if (r1 === p) {
+      triple = `(${r1})${r2}`;
+    } else if (r2 === p) {
+      triple = `(${r2})${r1}`;
+    } else {
+      triple = `(${r1})${r2}`;
+    }
+
+    // The opponent pair
+    const opp = o1 + o2;
+
+    return `${triple} vs ${opp}`;
+  }
+
+  return Object.entries(obj).map(([key, arr]) => {
+    const [mmr, wins, losses] = arr ?? [0, 0, 0];
+    const games = (wins ?? 0) + (losses ?? 0);
+
+    return {
+      key,
+      label: asLabel(key),
+      total: mmr ?? 0,
+      wins: wins ?? 0,
+      losses: losses ?? 0,
+      games,
+      perGame: games > 0 ? mmr / games : 0
+    };
+  }).sort((a, b) => b.total - a.total);
+}
+
+// ======================================================================
+// Reset
+// ======================================================================
+function resetDrawer3Chart() {
+  if (drawer3ChartInstance) {
+    drawer3ChartInstance.destroy();
+    drawer3ChartInstance = null;
+  }
+}
+
+// ======================================================================
+// Draw total
+// ======================================================================
+function drawDrawer3Total(list) {
+  resetDrawer3Chart();
+
+  const ctx = document.getElementById("extraChart3").getContext("2d");
+  const thickness = calcBarThickness(list.length);
+
+  drawer3ChartInstance = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: list.map(x => x.label),
+      datasets: [{
+        data: list.map(x => x.total),
+        backgroundColor: list.map(x => matchupColor(x.key[0])),
+        barThickness: thickness,
+        maxBarThickness: 44
+      }]
+    },
+    options: drawer3ChartOptions("total", list, thickness)
+  });
+}
+
+// ======================================================================
+// Draw per game
+// ======================================================================
+function drawDrawer3PerGame(list) {
+  resetDrawer3Chart();
+
+  const ctx = document.getElementById("extraChart3").getContext("2d");
+  const thickness = calcBarThickness(list.length);
+
+  drawer3ChartInstance = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: list.map(x => x.label),
+      datasets: [{
+        data: list.map(x => x.perGame),
+        backgroundColor: list.map(x => matchupColor(x.key[0])),
+        barThickness: thickness,
+        maxBarThickness: 44
+      }]
+    },
+    options: drawer3ChartOptions("pergame", list, thickness)
+  });
+}
+
+// ======================================================================
+// Tooltip + options (clone of your matchup options)
+// ======================================================================
+function drawer3ChartOptions(mode, list, barThickness) {
+  let tooltipEl = document.getElementById("bar-tooltip-drawer3");
+  if (!tooltipEl) {
+    tooltipEl = document.createElement("div");
+    tooltipEl.id = "bar-tooltip-drawer3";
+    Object.assign(tooltipEl.style, {
+      position: "absolute",
+      background: "rgba(0,0,0,0.85)",
+      color: "#ddd",
+      borderRadius: "6px",
+      padding: "7px 9px",
+      pointerEvents: "none",
+      fontSize: "13px",
+      whiteSpace: "nowrap",
+      transition: "opacity 0.1s ease",
+      opacity: 0,
+      zIndex: 1000
+    });
+    document.body.appendChild(tooltipEl);
+  }
+
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    indexAxis: "y",
+
+    datasets: {
+      bar: {
+        barThickness,
+        maxBarThickness: 44
+      }
+    },
+
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        enabled: false,
+        external: ctx => {
+          const tooltip = ctx.tooltip;
+          if (!tooltip || !tooltip.opacity) {
+            tooltipEl.style.opacity = 0;
+            return;
+          }
+
+          const dp = tooltip.dataPoints?.[0];
+          if (!dp) return;
+
+          const entry = list[dp.dataIndex];
+          const { label, wins, losses, games, total, perGame } = entry;
+
+          const wr = games > 0 ? (wins / games) * 100 : 0;
+          const mmrValue = mode === "total" ? total : perGame;
+          const mmrAbs = Math.abs(mmrValue).toFixed(2);
+          const mmrLabel =
+            mmrValue < 0
+              ? (mode === "total" ? "MMR lost" : "MMR lost per game")
+              : (mode === "total" ? "MMR gained" : "MMR gained per game");
+
+          // Extract two race boxes from label
+          const m = label.match(/^\((.)\)(.) vs /);
+          let rA = "p", rB = "z";
+          if (m) {
+            rA = m[1].toLowerCase();
+            rB = m[2].toLowerCase();
+          }
+
+          const colors = {
+            p: "#EBD678",
+            t: "#53B3FC",
+            z: "#C1A3F5"
+          };
+
           tooltipEl.innerHTML = `
-            <div style="font-weight:bold;">${label}</div>
-            <div style="margin-top:4px; font-family:monospace; opacity:0.85;">
-              ${wins} wins, ${losses} losses, ${wr.toFixed(1)}%<br>
-              ${mmrAbs} ${mmrLabel}
+            <div style="display:flex;align-items:center;gap:6px;font-weight:bold;margin-bottom:3px;">
+              <span style="width:10px;height:10px;background:${colors[rA]};display:inline-block;border-radius:2px;"></span>
+              <span style="width:10px;height:10px;background:${colors[rB]};display:inline-block;border-radius:2px;"></span>
+              <span>${label}</span>
+            </div>
+            <div style="font-family:monospace; opacity:0.85;">
+              ${wins} wins, ${losses} losses, ${wr.toFixed(1)}%. ${mmrAbs} ${mmrLabel}.
             </div>
           `;
 
@@ -1166,12 +1467,22 @@ function matchupChartOptions(mode, list, barThickness = 44) {
 
 
 
-/* slutten av pwm */
 
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+/* end of drawer3  */
 
 
 })();

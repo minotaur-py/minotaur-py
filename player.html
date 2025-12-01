@@ -41,7 +41,7 @@
        -------------------------- */
     #player-overview { 
       margin: 30px 0 24px;
-      padding: 30px 35px;
+      padding: 30px 35px 25px 35px;
       background-color: var(--panel);
       border-radius: 10px;
       border: 1px solid var(--border);
@@ -280,9 +280,9 @@
   transition: max-height .4s ease;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 25px;
-  margin-top: 20px;
-  padding: 0 20px;
+  gap: 35px;
+  margin-top: 30px;
+  padding: 20 0;
 }
 
 
@@ -294,7 +294,9 @@
 /* When opened */
 #extra-stats.open {
   max-height: 900px; /* large enough to reveal 4 charts */
-  padding-bottom: 20px;
+  margin-top: 30px;
+  padding-bottom: 73px;
+  
 }
 
 /* Chart boxes inside expansion */
@@ -337,10 +339,20 @@
 /*
 
 #extraChart1 {
-    border: 2px solid red !important; /* Temporarily add a bright border */
+    border: 2px solid red !important; /* For se kanvas-størrelse */
 }
 */
 
+
+
+
+
+
+
+
+.chart-mode-btn.hidden {
+    display: none;
+}
 
 
 
@@ -357,50 +369,62 @@
   background-color: #2b2b2b;
   border: 1px solid var(--border);
   border-radius: 6px;
-  color: #eee;
+  background: #333;
+  color: #ddd;
   cursor: pointer;
 }
 .chart-mode-btn:hover {
-  background-color: #3a3a3a;
+  background-color: #444;
+  font-size: 0.85em;
 }
 
 /* --- Footer Layout (label centered, button right) --- */
+
+
 .chart-footer {
   margin-top: 12px;
   display: flex;
-  justify-content: space-between;
+  
   align-items: center;
+  position: relative;
   width: 100%;
 }
 
-/* Center the label perfectly */
 .chart-footer .chart-label {
-  flex: 1;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%) ;
+  z-index: 10;  
+  
   text-align: center;
+  
+  padding: 0; 
+  margin: 0;
+  line-height: 1; /* Makes the box height exactly the font size */  
+
+
   font-size: .95em;
   color: var(--muted);
 }
 
-/* Push the button all the way to the right */
 .chart-footer button {
-  margin-left: auto;
+
+  margin-left: auto; 
 }
 
-/* Balance the layout with left-side phantom spacing */
-.chart-footer::before {
-  content: "";
-  width: 80px; /* visually matches button width */
-  display: block;
-}
+
+
+
+
 
 /* --- CHART BOX --- */
-/* IMPORTANT: fixed-height box + fixed-height canvas prevents gravity-like collapse */
+
 .extra-chart {
   min-height: 320px;
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: 20px 20px 81px 20px;
+  padding: 20px 20px 72px 20px;
 }
 
 
@@ -426,15 +450,8 @@
   width: 100%;           /* Responsive width */
   height: 100%;          /* Match parent height */
   display: block;
+  
 }
-
-
-
-
-
-
-
-
 
 
 
@@ -482,23 +499,35 @@
   </div>
 
   <!-- COLLAPSIBLE SECTION (initially hidden) -->
-  <div id="extra-stats">
+<div id="extra-stats">
     <div class="extra-chart">
-  <canvas id="extraChart1" height="260"></canvas>
+        <canvas id="extraChart1" height="260"></canvas>
 
-  <div class="chart-footer">
-    <div class="chart-label">MMR per Game</div>
+        <div class="chart-footer">
+            <div class="chart-label" id="extraChart1Label">Loading...</div>
 
-    <!-- Your new toggle button -->
-    <button id="chartModeToggle" class="chart-mode-btn" style="display:none;">
-      Show MMR per Game
-    </button>
-  </div>
-</div>
-    <div class="extra-chart"><canvas id="extraChart2"></canvas></div>
+
+            <button id="chartModeToggle" class="chart-mode-btn">
+                Show MMR per Game
+            </button>
+        </div>
+    </div>
+    
+    <div class="extra-chart">
+        <canvas id="extraChart2" height="260"></canvas> 
+        
+        <div class="chart-footer">
+            <div class="chart-label" id="extraChart2Label">Loading...</div>
+            
+            <button id="chartModeToggle2" class="chart-mode-btn" style="display: none;">
+                Show MMR per Game
+            </button>
+        </div>
+    </div>
+    
     <div class="extra-chart"><canvas id="extraChart3"></canvas></div>
     <div class="extra-chart"><canvas id="extraChart4"></canvas></div>
-  </div>
+</div>
 
 </section>
 

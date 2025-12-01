@@ -132,7 +132,9 @@ if (overviewBox) {
   overviewBox.style.backgroundColor = "#1c1c1caa";
 }
 */
-  // --- Race Pie Chart ---
+
+
+
 // --- Race Pie Chart ---
 const ctx = document.getElementById("raceChart")?.getContext?.("2d");
 function drawRaceChart() {
@@ -545,33 +547,42 @@ if (window.location.pathname.includes("player.html")) {
 
 
 
-(function () {
 
-  const toggleBtn      = document.getElementById("toggleExtraStats");
-  const extraStats     = document.getElementById("extra-stats");
-  const chartToggleBtn = document.getElementById("chartModeToggle"); // NEW BUTTON
-  let chartLoaded      = false;
-  let chartInstance    = null;
-  let cachedData       = null;
+(function () {
+  const toggleBtn = document.getElementById("toggleExtraStats");
+  const extraStats = document.getElementById("extra-stats");
+  const chartToggleBtn = document.getElementById("chartModeToggle");
+  const extraChart1Label = document.getElementById("extraChart1Label");
+
+  let chartLoaded = false;
+  let chartInstance = null;
+  let cachedData = null;
+
+  function updateExtraChartLabel(text) {
+    extraChart1Label.textContent = text;
+  }
 
   // ----------------------------------------------------
-  // Toggle expandable section
+  // Expandable section toggle
   // ----------------------------------------------------
   toggleBtn.addEventListener("click", () => {
     const opened = extraStats.classList.toggle("open");
-    toggleBtn.textContent = opened ? "Hide additional statistics" : "Show additional statistics";
+    toggleBtn.textContent = opened
+      ? "Hide additional statistics"
+      : "Show additional statistics";
 
     if (opened && !chartLoaded) {
-      const playerId = new URLSearchParams(window.location.search).get("id");
-      if (playerId) {
-        ensureChart(playerId);
-        chartLoaded = true;
-      }
-    }
+  const playerId = new URLSearchParams(window.location.search).get("id");
+  if (playerId) {
+    ensureChart(playerId);   // loads PWR chart
+    loadMatchupChart(playerId); // loads PWM chart
+    chartLoaded = true;
+  }
+}
   });
 
   // ----------------------------------------------------
-  // Ensure Chart.js exists
+  // Load Chart.js if missing
   // ----------------------------------------------------
   function ensureChart(playerId) {
     if (typeof Chart === "undefined") {
@@ -584,20 +595,35 @@ if (window.location.pathname.includes("player.html")) {
     }
   }
 
+
+
+
+
+
+
+
+
+
+
   // ----------------------------------------------------
-  // Load data & draw default chart
+  // Initialize chart
   // ----------------------------------------------------
   async function initChart(playerId) {
     cachedData = await loadPlayerData(playerId);
     if (!cachedData) return;
 
-    drawTotalChart(cachedData);   // DEFAULT VIEW
+    // Default chart
+    drawTotalChart(cachedData);
+    updateExtraChartLabel("Total MMR Gained with Each Race");
 
-    // Enable toggle button once chart is ready
+    // INITIAL MODE
+    chartToggleBtn.dataset.mode = "total";
+
+    // Show button
     chartToggleBtn.style.display = "inline-block";
-    chartToggleBtn.addEventListener("click", () => {
-      switchChart(playerId);
-    });
+
+    // Toggle handler
+    chartToggleBtn.addEventListener("click", switchChart);
   }
 
   // ----------------------------------------------------
@@ -612,39 +638,50 @@ if (window.location.pathname.includes("player.html")) {
     const player = data.pwr?.[playerId];
     if (!player) return null;
 
-    function perGame(entry) {
-      const [total, games] = entry ?? [0, 0];
-      return games > 0 ? total / games : 0;
+    function parse(entry) {
+      if (!entry) return { total: 0, wins: 0, losses: 0, games: 0 };
+      const [total, wins, losses] = entry;
+      return {
+        total: total ?? 0,
+        wins: wins ?? 0,
+        losses: losses ?? 0,
+        games: (wins ?? 0) + (losses ?? 0)
+      };
     }
 
+    const p = parse(player.p);
+    const t = parse(player.t);
+    const z = parse(player.z);
+
     return {
-      // Totals
+      raw: { p, t, z },
       total: {
-        p: player.p?.[0] ?? 0,
-        t: player.t?.[0] ?? 0,
-        z: player.z?.[0] ?? 0
+        p: p.total,
+        t: t.total,
+        z: z.total
       },
-      // Per-game
       perGame: {
-        p: perGame(player.p),
-        t: perGame(player.t),
-        z: perGame(player.z)
+        p: p.games > 0 ? p.total / p.games : 0,
+        t: t.games > 0 ? t.total / t.games : 0,
+        z: z.games > 0 ? z.total / z.games : 0
       }
     };
   }
 
   // ----------------------------------------------------
-  // Chart switching logic
+  // Switch chart type
   // ----------------------------------------------------
   function switchChart() {
-    const showingTotal = chartToggleBtn.dataset.mode !== "pergame";
+    const mode = chartToggleBtn.dataset.mode;
 
-    if (showingTotal) {
+    if (mode === "total") {
       drawPerGameChart(cachedData);
+      updateExtraChartLabel("MMR Gained per Game with Each Race");
       chartToggleBtn.dataset.mode = "pergame";
       chartToggleBtn.textContent = "Show Total MMR Gained";
     } else {
       drawTotalChart(cachedData);
+      updateExtraChartLabel("Total MMR Gained with Each Race");
       chartToggleBtn.dataset.mode = "total";
       chartToggleBtn.textContent = "Show MMR per Game";
     }
@@ -661,7 +698,7 @@ if (window.location.pathname.includes("player.html")) {
   }
 
   // ----------------------------------------------------
-  // CHART A: TOTAL MMR GAINED (DEFAULT)
+  // Chart A: Total MMR gained
   // ----------------------------------------------------
   function drawTotalChart(data) {
     resetChart();
@@ -672,17 +709,16 @@ if (window.location.pathname.includes("player.html")) {
       data: {
         labels: ["Protoss", "Terran", "Zerg"],
         datasets: [{
-          label: "Total MMR Gained with Each Race",
           data: [data.total.p, data.total.t, data.total.z],
           backgroundColor: ["#EBD678", "#53B3FC", "#C1A3F5"]
         }]
       },
-      options: chartOptions()
+      options: chartOptions("total", data)
     });
   }
 
   // ----------------------------------------------------
-  // CHART B: MMR GAINED PER GAME
+  // Chart B: MMR per game
   // ----------------------------------------------------
   function drawPerGameChart(data) {
     resetChart();
@@ -693,47 +729,449 @@ if (window.location.pathname.includes("player.html")) {
       data: {
         labels: ["Protoss", "Terran", "Zerg"],
         datasets: [{
-          label: "MMR Gained per Game with Each Race",
           data: [data.perGame.p, data.perGame.t, data.perGame.z],
           backgroundColor: ["#EBD678", "#53B3FC", "#C1A3F5"]
         }]
       },
-      options: chartOptions()
+      options: chartOptions("pergame", data)
     });
   }
 
   // ----------------------------------------------------
   // Shared chart styling
   // ----------------------------------------------------
-  function chartOptions() {
-    return {
-      responsive: true,
-      maintainAspectRatio: false,
-      indexAxis: "y",
-      plugins: {
-        legend: {
-          display: true,
-          position: "bottom",
-          labels: {
-            color: "#AAAAAA",
-            
-            boxWidth: 0,
-            font: { size: 14 },
-            onClick: (e) => e.stopPropagation()
-          }
-        }
-      },
-      scales: {
-        x: { 
-          beginAtZero: true, 
-          grid: {
-          display: true, // Ensure vertical grid lines are displayed
-          color: "#222222" // Optional: Set a color for the grid lines
-}
-},
-        y: { ticks: { color: "#AAAAAA" } }
-      }
-    };
+  function chartOptions(mode, playerStats, barThickness = 56) {
+
+  // Create tooltip element once
+  let tooltipEl = document.getElementById("bar-tooltip");
+  if (!tooltipEl) {
+    tooltipEl = document.createElement("div");
+    tooltipEl.id = "bar-tooltip";
+    Object.assign(tooltipEl.style, {
+      position: "absolute",
+      background: "rgba(0,0,0,0.85)",
+      color: "#ddd",
+      borderRadius: "6px",
+      padding: "7px 9px",
+      pointerEvents: "none",
+      fontSize: "13px",
+      whiteSpace: "nowrap",
+      transition: "opacity 0.1s ease",
+      opacity: 0,
+      zIndex: 1000
+    });
+    document.body.appendChild(tooltipEl);
   }
+
+  const raceColors = {
+    Protoss: "#EBD678",
+    Terran: "#53B3FC",
+    Zerg:   "#C1A3F5"
+  };
+
+  const labelToKey = { Protoss: "p", Terran: "t", Zerg: "z" };
+
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    indexAxis: "y",
+
+    datasets: {
+      bar: {
+        barThickness: barThickness
+      }
+    },
+
+    plugins: {
+      legend: { display: false },
+
+      tooltip: {
+        enabled: false,
+
+        external: ctx => {
+          const tooltip = ctx.tooltip;
+
+          // Hide tooltip when not hovering
+          if (!tooltip || !tooltip.opacity) {
+            tooltipEl.style.opacity = 0;
+            return;
+          }
+
+          const dp = tooltip.dataPoints?.[0];
+          if (!dp) return;
+
+          const race = dp.label;
+          const key = labelToKey[race];
+          const stats = playerStats.raw[key];
+
+          const { total, wins, losses, games } = stats;
+          const wr = games > 0 ? (wins / games) * 100 : 0;
+          const wrTxt = wr.toFixed(1) + "%";
+          const color = raceColors[race];
+
+          const plural = (n, w) =>
+            w === "loss" ? (n === 1 ? "loss" : "losses") : (n === 1 ? w : w + "s");
+
+          let mmrValue = mode === "total" ? total : (games > 0 ? total / games : 0);
+          let mmrLabel =
+            mmrValue < 0
+              ? (mode === "total" ? "MMR lost" : "MMR lost per game")
+              : (mode === "total" ? "MMR gained" : "MMR gained per game");
+
+          const mmrAbs = Math.abs(mmrValue).toFixed(2);
+
+          // -----------------------------------------------------------
+          // HTML (two-line layout)
+          // -----------------------------------------------------------
+          let html = `
+            <div style="display:flex; align-items:center; font-weight:bold;">
+              <span style="
+                width:10px;height:10px;
+                background:${color};
+                display:inline-block;
+                border-radius:2px;
+                margin-right:6px;
+              "></span>
+              <span>${race}</span>
+            </div>
+
+            <div style="
+              margin-top:4px;
+              margin-left:16px;
+              font-family:monospace;
+              opacity:0.85;
+            ">
+              ${wins} ${plural(wins,"win")}, ${losses} ${plural(losses,"loss")}, ${wrTxt}. 
+              ${mmrAbs} ${mmrLabel}.
+            </div>
+          `;
+
+          tooltipEl.innerHTML = html;
+
+          // -----------------------------------------------------------
+          // Accurate mouse positioning (REAL cursor position)
+          // -----------------------------------------------------------
+
+          const rect = ctx.chart.canvas.getBoundingClientRect();
+
+          // Tooltip stores the exact mouse coordinates here
+          const mouse = ctx.chart.tooltip?._eventPosition;
+
+          let x = tooltip.caretX;
+          let y = tooltip.caretY;
+
+          if (mouse) {
+            x = mouse.x;
+            y = mouse.y;
+          }
+
+          const pageX = rect.left + window.pageXOffset + x;
+          const pageY = rect.top + window.pageYOffset + y;
+
+          tooltipEl.style.left = (pageX + 14) + "px";
+          tooltipEl.style.top  = (pageY - 12) + "px";
+          tooltipEl.style.opacity = 1;
+        }
+      }
+    },
+
+    scales: {
+      x: {
+        beginAtZero: true,
+        grid: { display: true, color: "#222222" },
+        ticks: { color: "#AAAAAA" }
+      },
+      y: {
+        ticks: { color: "#AAAAAA" }
+      }
+    }
+  };
+}
+
+
+
+/* pwm starter her */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+let matchupChartInstance = null;
+let matchupDataCache = null;
+
+async function loadMatchupChart(playerId) {
+  const season = await getCurrentSeason();
+  const res = await fetchNoCache(`data/seasons/${season}/statistics_data.json`);
+  if (!res.ok) return;
+
+  const data = await res.json();
+  const matchups = data.pwm?.[playerId];
+  if (!matchups) return;
+
+  matchupDataCache = parseMatchupData(matchups);
+  drawMatchupChartTotal(matchupDataCache);
+
+  const labelEl = document.getElementById("extraChart2Label");
+  const toggleEl = document.getElementById("chartModeToggle2");
+
+  labelEl.textContent = "Total MMR Gained with Each Team Comp.";
+  toggleEl.dataset.mode = "total";
+  toggleEl.style.display = "inline-block";
+
+  toggleEl.addEventListener("click", () => {
+    const mode = toggleEl.dataset.mode;
+    if (mode === "total") {
+      drawMatchupChartPerGame(matchupDataCache);
+      labelEl.textContent = "MMR Gained per Game with Each Team Comp.";
+      toggleEl.dataset.mode = "pergame";
+      toggleEl.textContent = "Show Total MMR Gained";
+    } else {
+      drawMatchupChartTotal(matchupDataCache);
+      labelEl.textContent = "Total MMR Gained with Each Team Comp.";
+      toggleEl.dataset.mode = "total";
+      toggleEl.textContent = "Show MMR per Game";
+    }
+  });
+}
+
+// ======================================================================
+// Parse pwm → usable list
+// ======================================================================
+function parseMatchupData(obj) {
+function asLabel(key) {
+  if (!key || key.length < 3) return "";
+
+  const playerRace = key[0].toUpperCase();
+  const r1 = key[1].toUpperCase();
+  const r2 = key[2].toUpperCase();
+
+  // If the two teammate letters are identical: parenthesize the first and show the second
+  if (r1 === r2) {
+    return `(${r1})${r2}`;
+  }
+
+  // If r1 matches the player's race, show it first (parenthesized) then the other
+  if (r1 === playerRace) {
+    return `(${r1})${r2}`;
+  }
+
+  // If r2 matches the player's race, show r2 first (parenthesized) then r1
+  if (r2 === playerRace) {
+    return `(${r2})${r1}`;
+  }
+
+  // Fallback: neither matches playerRace — parenthesize the first teammate and show the second
+  return `(${r1})${r2}`;
+}
+
+  const entries = Object.entries(obj).map(([key, arr]) => {
+    const [mmr, wins, losses] = arr ?? [0,0,0];
+    const games = (wins ?? 0) + (losses ?? 0);
+
+    return {
+      key,
+      label: asLabel(key),
+      total: mmr ?? 0,
+      wins: wins ?? 0,
+      losses: losses ?? 0,
+      games,
+      perGame: games > 0 ? (mmr / games) : 0
+    };
+  });
+
+  entries.sort((a,b) => b.total - a.total);
+  return entries;
+}
+
+// ======================================================================
+// Chart rendering
+// ======================================================================
+function resetMatchupChart() {
+  if (matchupChartInstance) {
+    matchupChartInstance.destroy();
+    matchupChartInstance = null;
+  }
+}
+
+function drawMatchupChartTotal(list) {
+  resetMatchupChart();
+
+  const ctx = document.getElementById("extraChart2").getContext("2d");
+  const thickness = calcBarThickness(list.length);
+
+  matchupChartInstance = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: list.map(x => x.label),
+      datasets: [{
+        data: list.map(x => x.total),
+        backgroundColor: list.map(x => matchupColor(x.key)),
+        barThickness: thickness,       // ← dynamic thickness
+        maxBarThickness: 44            // ← safety cap (optional)
+      }]
+    },
+    options: matchupChartOptions("total", list, thickness)
+  });
+}
+
+function drawMatchupChartPerGame(list) {
+  resetMatchupChart();
+
+  const ctx = document.getElementById("extraChart2").getContext("2d");
+  const thickness = calcBarThickness(list.length);
+
+  matchupChartInstance = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: list.map(x => x.label),
+      datasets: [{
+        data: list.map(x => x.perGame),
+        backgroundColor: list.map(x => matchupColor(x.key)),
+        barThickness: thickness,
+        maxBarThickness: 44
+      }]
+    },
+    options: matchupChartOptions("pergame", list, thickness)
+  });
+}
+
+// ======================================================================
+// Colors
+// ======================================================================
+function matchupColor(key) {
+  const race = key[0];
+  return {
+    p: "#EBD678",
+    t: "#53B3FC",
+    z: "#C1A3F5"
+  }[race] ?? "#999";
+}
+
+
+function calcBarThickness(listLength) {
+  const max = 44;
+  const quota = 132;
+  if (listLength <= 0) return max;
+  return Math.min(max, Math.floor(quota / listLength));
+}
+
+// ======================================================================
+// Tooltip + chart options
+// ======================================================================
+function matchupChartOptions(mode, list, barThickness = 44) {
+  let tooltipEl = document.getElementById("bar-tooltip-matchups");
+  if (!tooltipEl) {
+    tooltipEl = document.createElement("div");
+    tooltipEl.id = "bar-tooltip-matchups";
+    Object.assign(tooltipEl.style, {
+      position: "absolute",
+      background: "rgba(0,0,0,0.85)",
+      color: "#ddd",
+      borderRadius: "6px",
+      padding: "7px 9px",
+      pointerEvents: "none",
+      fontSize: "13px",
+      whiteSpace: "nowrap",
+      transition: "opacity 0.1s ease",
+      opacity: 0,
+      zIndex: 1000
+    });
+    document.body.appendChild(tooltipEl);
+  }
+
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    indexAxis: "y",
+
+    datasets: {
+      bar: {
+        // Uses the barThickness parameter from the function signature
+        barThickness,
+        // Integrated from the first function's options
+        maxBarThickness: 44
+      }
+    },
+
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        enabled: false,
+        external: ctx => {
+          const tooltip = ctx.tooltip;
+          if (!tooltip || !tooltip.opacity) {
+            tooltipEl.style.opacity = 0;
+            return;
+          }
+
+          const dp = tooltip.dataPoints?.[0];
+          if (!dp) return;
+
+          const entry = list[dp.dataIndex];
+          const { label, wins, losses, games, total, perGame } = entry;
+
+          const wr = games > 0 ? (wins / games) * 100 : 0;
+          const mmrValue = mode === "total" ? total : perGame;
+          const mmrAbs = Math.abs(mmrValue).toFixed(2);
+          const mmrLabel =
+            mmrValue < 0
+              ? (mode === "total" ? "MMR lost" : "MMR lost per game")
+              : (mode === "total" ? "MMR gained" : "MMR gained per game");
+
+          tooltipEl.innerHTML = `
+            <div style="font-weight:bold;">${label}</div>
+            <div style="margin-top:4px; font-family:monospace; opacity:0.85;">
+              ${wins} wins, ${losses} losses, ${wr.toFixed(1)}%<br>
+              ${mmrAbs} ${mmrLabel}
+            </div>
+          `;
+
+          const rect = ctx.chart.canvas.getBoundingClientRect();
+          const mouse = ctx.chart.tooltip?._eventPosition;
+          const x = mouse ? mouse.x : tooltip.caretX;
+          const y = mouse ? mouse.y : tooltip.caretY;
+
+          tooltipEl.style.left = (rect.left + window.pageXOffset + x + 14) + "px";
+          tooltipEl.style.top  = (rect.top + window.pageYOffset + y - 12) + "px";
+          tooltipEl.style.opacity = 1;
+        }
+      }
+    },
+
+    scales: {
+      x: {
+        beginAtZero: true,
+        grid: { color: "#222" },
+        ticks: { color: "#AAA" }
+      },
+      y: {
+        ticks: { color: "#AAA" }
+      }
+    }
+  };
+}
+
+
+
+
+/* slutten av pwm */
+
+
+
+
+
+
 
 })();

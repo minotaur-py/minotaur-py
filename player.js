@@ -1141,76 +1141,65 @@ function matchupChartOptions(mode, list, barThickness = 44) {
     plugins: {
       legend: { display: false },
       tooltip: {
-        enabled: false,
-        external: ctx => {
-          const tooltip = ctx.tooltip;
-          if (!tooltip || !tooltip.opacity) {
-            tooltipEl.style.opacity = 0;
-            return;
-          }
+  enabled: false,
+  external: ctx => {
+    const tooltip = ctx.tooltip;
+    if (!tooltip || !tooltip.opacity) {
+      tooltipEl.style.opacity = 0;
+      return;
+    }
 
-          const dp = tooltip.dataPoints?.[0];
-          if (!dp) return;
+    const dp = tooltip.dataPoints?.[0];
+    if (!dp) return;
 
-          const entry = list[dp.dataIndex];
-          const { label, wins, losses, games, total, perGame } = entry;
+    const entry = list[dp.dataIndex];
+    const { label, wins, losses, games, total, perGame } = entry;
 
-          const wr = games > 0 ? (wins / games) * 100 : 0;
-          const mmrValue = mode === "total" ? total : perGame;
-          const mmrAbs = Math.abs(mmrValue).toFixed(2);
-          const mmrLabel =
-            mmrValue < 0
-              ? (mode === "total" ? "MMR lost" : "MMR lost per game")
-              : (mode === "total" ? "MMR gained" : "MMR gained per game");
+    const wr = games > 0 ? (wins / games) * 100 : 0;
+    const mmrValue = mode === "total" ? total : perGame;
+    const mmrAbs = Math.abs(mmrValue).toFixed(2);
+    const mmrLabel =
+      mmrValue < 0
+        ? (mode === "total" ? "MMR lost" : "MMR lost per game")
+        : (mode === "total" ? "MMR gained" : "MMR gained per game");
 
-          // Determine player + teammate letters
+    function pluralize(count, singular, plural = null) {
+      if (plural === null) plural = singular + "s";
+      return count === 1 ? singular : plural;
+    }
 
+    // Extract races directly from the label "(P)Z", "(T)P", etc.
+    const match = label.match(/^\((.)\)(.)$/);
+    let raceA = match ? match[1].toLowerCase() : "p";
+    let raceB = match ? match[2].toLowerCase() : "z";
 
-// Extract races directly from the label "(P)Z", "(T)P", etc.
-const match = label.match(/^\((.)\)(.)$/);
+    const colors = { p: "#EBD678", t: "#53B3FC", z: "#C1A3F5" };
+    const c1 = colors[raceA] || "#999";
+    const c2 = colors[raceB] || "#999";
 
-let raceA = null; // first box
-let raceB = null; // second box
+    tooltipEl.innerHTML = `
+      <div style="display:flex;align-items:center;gap:3px;font-weight:bold;margin-bottom:3px;">
+        <span style="width:10px;height:10px;background:${c1};display:inline-block;border-radius:2px;"></span>
+        <span style="width:10px;height:10px;background:${c2};display:inline-block;border-radius:2px;"></span>
+        <span>${label}</span>
+      </div>
 
-if (match) {
-  raceA = match[1].toLowerCase();  // primary race
-  raceB = match[2].toLowerCase();  // secondary race
-} else {
-  // Fallback: unknown formatting
-  raceA = "p";
-  raceB = "z";
+      <div style="font-family:monospace; opacity:0.85;">
+        ${wins} ${pluralize(wins, "win")}, ${losses} ${pluralize(losses, "loss", "losses")}, ${wr.toFixed(1)}%. ${mmrAbs} ${mmrLabel}.
+
+      </div>
+    `;
+
+    const rect = ctx.chart.canvas.getBoundingClientRect();
+    const mouse = ctx.chart.tooltip?._eventPosition;
+    const x = mouse ? mouse.x : tooltip.caretX;
+    const y = mouse ? mouse.y : tooltip.caretY;
+
+    tooltipEl.style.left = (rect.left + window.pageXOffset + x + 14) + "px";
+    tooltipEl.style.top  = (rect.top + window.pageYOffset + y - 12) + "px";
+    tooltipEl.style.opacity = 1;
+  }
 }
-
-const colors = {
-  p: "#EBD678",
-  t: "#53B3FC",
-  z: "#C1A3F5"
-};
-
-const c1 = colors[raceA] || "#999";
-const c2 = colors[raceB] || "#999";
-
-tooltipEl.innerHTML = `
-  <div style="display:flex;align-items:center;gap:3px;font-weight:bold;margin-bottom:3px;">
-    <span style="width:10px;height:10px;background:${c1};display:inline-block;border-radius:2px;"></span>
-    <span style="width:10px;height:10px;background:${c2};display:inline-block;border-radius:2px;"></span>
-    <span>${label}</span>
-  </div>
-
-  <div style="font-family:monospace; opacity:0.85;">
-    ${wins} wins, ${losses} losses, ${wr.toFixed(1)}%. ${mmrAbs} ${mmrLabel}.
-  </div>
-`;
-          const rect = ctx.chart.canvas.getBoundingClientRect();
-          const mouse = ctx.chart.tooltip?._eventPosition;
-          const x = mouse ? mouse.x : tooltip.caretX;
-          const y = mouse ? mouse.y : tooltip.caretY;
-
-          tooltipEl.style.left = (rect.left + window.pageXOffset + x + 14) + "px";
-          tooltipEl.style.top  = (rect.top + window.pageYOffset + y - 12) + "px";
-          tooltipEl.style.opacity = 1;
-        }
-      }
     },
 
     scales: {
@@ -1469,6 +1458,11 @@ function drawer3ChartOptions(mode, list, barThickness) {
     z: "#C1A3F5"
   };
 
+  function pluralize(count, singular, plural = null) {
+    if (plural === null) plural = singular + "s";
+    return count === 1 ? singular : plural;
+  }
+
   return {
     responsive: true,
     maintainAspectRatio: false,
@@ -1506,37 +1500,23 @@ function drawer3ChartOptions(mode, list, barThickness) {
               ? (mode === "total" ? "MMR lost" : "MMR lost per game")
               : (mode === "total" ? "MMR gained" : "MMR gained per game");
 
-          // Use structured fields to avoid parsing problems
+          // Teammates + opponents letters
           const tA = (entry.teammateA || "").toUpperCase();
           const tB = (entry.teammateB || "").toUpperCase();
           const oA = (entry.opponentA || "").toUpperCase();
           const oB = (entry.opponentB || "").toUpperCase();
 
-          // Build the teammate label, preserving the parenthesis choice
-          // parenthesisIndex === 1 means (tA)tB, === 2 means tA(tB)
-          let teamLabel;
-          if (parenthesisIndex === 2) {
-            teamLabel = `${tA}(${tB})`;
-          } else {
-            teamLabel = `(${tA})${tB}`;
-          }
-
-          // Opponent label (no parentheses in your format)
+          const teamLabel = parenthesisIndex === 2 ? `${tA}(${tB})` : `(${tA})${tB}`;
           const oppLabel = `${oA}${oB}`;
 
-          // Tooltip header: home team boxes + letters  vs  away team boxes + letters
           tooltipEl.innerHTML = `
   <div style="display:flex;align-items:center;gap:12px;font-weight:700;margin-bottom:6px;color:inherit;">
-    <!-- Home (teammates) -->
-    <div style="display:flex;align-items:center;gap:3px;"> <!-- smaller gap between boxes -->
+    <div style="display:flex;align-items:center;gap:3px;">
       <span style="width:10px;height:10px;background:${colors[tA.toLowerCase()] || '#666'};display:inline-block;border-radius:2px;"></span>
       <span style="width:10px;height:10px;background:${colors[tB.toLowerCase()] || '#666'};display:inline-block;border-radius:2px;"></span>
       <span style="font-family:monospace;font-size:14px;letter-spacing:0;color:inherit;">${teamLabel}</span>
     </div>
-
     <div style="opacity:1;color:inherit;font-weight:700;">vs</div>
-
-    <!-- Away (opponents) -->
     <div style="display:flex;align-items:center;gap:3px;">
       <span style="width:10px;height:10px;background:${colors[oA.toLowerCase()] || '#666'};display:inline-block;border-radius:2px;"></span>
       <span style="width:10px;height:10px;background:${colors[oB.toLowerCase()] || '#666'};display:inline-block;border-radius:2px;"></span>
@@ -1545,11 +1525,10 @@ function drawer3ChartOptions(mode, list, barThickness) {
   </div>
 
   <div style="font-family:monospace;font-size:14px;opacity:0.85;">
-    ${wins} wins, ${losses} losses, ${wr.toFixed(1)}%. ${mmrAbs} ${mmrLabel}.
+    ${wins} ${pluralize(wins, "win")}, ${losses} ${pluralize(losses, "loss", "losses")}, ${wr.toFixed(1)}%. ${mmrAbs} ${mmrLabel}.
   </div>
 `;
 
-          // position tooltip near cursor
           const rect = ctx.chart.canvas.getBoundingClientRect();
           const mouse = ctx.chart.tooltip?._eventPosition;
           const x = mouse ? mouse.x : tooltip.caretX;
@@ -1563,14 +1542,8 @@ function drawer3ChartOptions(mode, list, barThickness) {
     },
 
     scales: {
-      x: {
-        beginAtZero: true,
-        grid: { color: "#222" },
-        ticks: { color: "#AAA" }
-      },
-      y: {
-        ticks: { color: "#AAA" }
-      }
+      x: { beginAtZero: true, grid: { color: "#222" }, ticks: { color: "#AAA" } },
+      y: { ticks: { color: "#AAA" } }
     }
   };
 }

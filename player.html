@@ -293,9 +293,9 @@
 
 /* When opened */
 #extra-stats.open {
-  max-height: 1600px; /* large enough to reveal 4 charts */
+  max-height: 4600px; /* large enough to reveal 4 charts */
   margin-top: 30px;
-  padding-bottom: 73px;
+  padding-bottom: 33px;
   
 }
 
@@ -305,7 +305,8 @@
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 20px;
-  min-height: 260px;
+  
+  height: 350px;
 }
 
 /* Button styling */
@@ -436,7 +437,7 @@
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 20px;
-
+  height: 1050px;
 }
 
 
@@ -558,9 +559,23 @@
         </div>
     </div>
 
+   <div class="extra-chart-tall">
+        <canvas id="extraChart4" height="260"></canvas> 
+        
+        <div class="chart-footer">
+            <div class="chart-label" id="extraChart4Label">Loading...</div>
+            
+            <button id="chartModeToggle4" class="chart-mode-btn" style="display: none;">
+                Show MMR per Game
+            </button>
+        </div>
+    </div>
+    
+
+
+
 
     
-    <div class="extra-chart"><canvas id="extraChart4"></canvas></div>
 </div>
 
 </section>

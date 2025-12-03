@@ -577,6 +577,7 @@ if (opened && !chartLoaded) {
     ensureChart(playerId);        // PWR
     loadMatchupChart(playerId);   // PWM
     loadDrawer3Chart(playerId);   // NEW: drawer3
+    loadDrawer4Chart(playerId);
     chartLoaded = true;
   }
 }
@@ -951,39 +952,61 @@ async function loadMatchupChart(playerId) {
 // Parse pwm → usable list
 // ======================================================================
 function parseMatchupData(obj) {
-function asLabel(key) {
-  if (!key || key.length < 3) return "";
+  // helper: decide which teammate gets parentheses based on key[0]
+  function decideParenthesis(playerRace, t1, t2) {
+    // normalize
+    const p = (playerRace || "").toUpperCase();
+    const a = (t1 || "").toUpperCase();
+    const b = (t2 || "").toUpperCase();
 
-  const playerRace = key[0].toUpperCase();
-  const r1 = key[1].toUpperCase();
-  const r2 = key[2].toUpperCase();
+    // if teammates identical -> parenthesize first
+    if (a === b) return { index: 1, race: a.toLowerCase() };
 
-  // If the two teammate letters are identical: parenthesize the first and show the second
-  if (r1 === r2) {
-    return `(${r1})${r2}`;
+    // if first teammate matches player -> parenthesize first
+    if (a === p) return { index: 1, race: a.toLowerCase() };
+
+    // if second teammate matches player -> parenthesize second
+    if (b === p) return { index: 2, race: b.toLowerCase() };
+
+    // fallback -> parenthesize first
+    return { index: 1, race: a.toLowerCase() };
   }
 
-  // If r1 matches the player's race, show it first (parenthesized) then the other
-  if (r1 === playerRace) {
-    return `(${r1})${r2}`;
-  }
+  function makeLabel(key) {
+    if (!key || key.length < 3) return "";
+    const player = key[0];
+    const t1 = key[1].toUpperCase();
+    const t2 = key[2].toUpperCase();
 
-  // If r2 matches the player's race, show r2 first (parenthesized) then r1
-  if (r2 === playerRace) {
-    return `(${r2})${r1}`;
-  }
+    const { index } = decideParenthesis(player, t1, t2);
 
-  // Fallback: neither matches playerRace — parenthesize the first teammate and show the second
-  return `(${r1})${r2}`;
-}
+    // DO NOT change the order — keep teammate order as-is,
+    // only add parentheses around the chosen teammate
+    if (index === 1) {
+      return `(${t1})${t2}`;
+    } else {
+      return `${t1}(${t2})`;
+    }
+  }
 
   const entries = Object.entries(obj).map(([key, arr]) => {
-    const [mmr, wins, losses] = arr ?? [0,0,0];
+    const [mmr, wins, losses] = arr ?? [0, 0, 0];
     const games = (wins ?? 0) + (losses ?? 0);
+
+    // extract teammates in original order
+    const teammateA = (key && key[1]) ? key[1].toUpperCase() : "";
+    const teammateB = (key && key[2]) ? key[2].toUpperCase() : "";
+
+    const { index: parenthesisIndex, race: parenthesisRace } =
+      decideParenthesis(key && key[0], teammateA, teammateB);
 
     return {
       key,
-      label: asLabel(key),
+      label: makeLabel(key),
+      teammateA,           // original order, uppercase
+      teammateB,           // original order, uppercase
+      parenthesisIndex,    // 1 or 2
+      parenthesisRace,     // lowercase char of the parenthesized teammate
       total: mmr ?? 0,
       wins: wins ?? 0,
       losses: losses ?? 0,
@@ -992,7 +1015,7 @@ function asLabel(key) {
     };
   });
 
-  entries.sort((a,b) => b.total - a.total);
+  entries.sort((a, b) => b.total - a.total);
   return entries;
 }
 
@@ -1067,6 +1090,15 @@ function calcBarThickness(listLength) {
   if (listLength <= 0) return max;
   return Math.min(max, Math.floor(quota / listLength));
 }
+
+function calcBarThicknessHigh(listLength) {
+  const max = 44;
+  const quota = 264;
+  if (listLength <= 0) return max;
+  return Math.min(max, Math.floor(quota / listLength));
+}
+
+
 
 // ======================================================================
 // Tooltip + chart options
@@ -1159,7 +1191,7 @@ const c1 = colors[raceA] || "#999";
 const c2 = colors[raceB] || "#999";
 
 tooltipEl.innerHTML = `
-  <div style="display:flex;align-items:center;gap:6px;font-weight:bold;margin-bottom:3px;">
+  <div style="display:flex;align-items:center;gap:3px;font-weight:bold;margin-bottom:3px;">
     <span style="width:10px;height:10px;background:${c1};display:inline-block;border-radius:2px;"></span>
     <span style="width:10px;height:10px;background:${c2};display:inline-block;border-radius:2px;"></span>
     <span>${label}</span>
@@ -1210,6 +1242,9 @@ tooltipEl.innerHTML = `
 let drawer3ChartInstance = null;
 let drawer3DataCache = null;
 
+// ======================================================================
+// Drawer 3 – NEW version with integrated bar-count height logic
+// ======================================================================
 async function loadDrawer3Chart(playerId) {
   const season = await getCurrentSeason();
   const res = await fetchNoCache(`data/seasons/${season}/statistics_data.json`);
@@ -1219,9 +1254,16 @@ async function loadDrawer3Chart(playerId) {
   const raw = data.drawer3?.[playerId];
   if (!raw) return;
 
+  // parse
   drawer3DataCache = parseDrawer3Data(raw);
+
+  // dynamic chart height
+  updateExtraChart3Height(drawer3DataCache.length);
+
+  // initial draw
   drawDrawer3Total(drawer3DataCache);
 
+  // UI wiring
   const labelEl = document.getElementById("extraChart3Label");
   const toggleEl = document.getElementById("chartModeToggle3");
 
@@ -1231,8 +1273,9 @@ async function loadDrawer3Chart(playerId) {
   toggleEl.style.display = "inline-block";
 
   toggleEl.onclick = () => {
-    const m = toggleEl.dataset.mode;
-    if (m === "total") {
+    const mode = toggleEl.dataset.mode;
+
+    if (mode === "total") {
       drawDrawer3PerGame(drawer3DataCache);
       toggleEl.dataset.mode = "pergame";
       toggleEl.textContent = "Show Total MMR Gained";
@@ -1243,49 +1286,92 @@ async function loadDrawer3Chart(playerId) {
       toggleEl.textContent = "Show MMR per Game";
       labelEl.textContent = "Total MMR Gained for Each Matchup";
     }
+
+    // make sure height is correct after redraw
+    updateExtraChart3Height(drawer3DataCache.length);
   };
 }
+
+
+// ======================================================================
+// Compute + apply dynamic height for Extra Chart 3
+// ======================================================================
+function updateExtraChart3Height(barCount) {
+  // base height: how tall chart should be for up to ~10 bars
+  const base = 340;  
+
+  // how many bars beyond 10
+  const extraBars = Math.max(0, barCount - 10);
+
+  // pixels added per extra bar
+  const perBar = 24;  
+
+  const height = base + extraBars * perBar;
+
+  const container = document.getElementById("extraChart3Container");
+  if (container) {
+    container.style.height = height + "px";
+  }
+}
+
 
 // ======================================================================
 // Parse drawer3 → list usable by charts
 // ======================================================================
 function parseDrawer3Data(obj) {
+  // same parenthesis-decider logic but adapted for 5-letter key
+  function decideParenthesis(playerRace, t1, t2) {
+    const p = (playerRace || "").toUpperCase();
+    const a = (t1 || "").toUpperCase();
+    const b = (t2 || "").toUpperCase();
 
-  function asLabel(key5) {
-    // key5 example: z t z p t
+    if (a === b) return { index: 1, race: a.toLowerCase() };
+    if (a === p) return { index: 1, race: a.toLowerCase() };
+    if (b === p) return { index: 2, race: b.toLowerCase() };
+    return { index: 1, race: a.toLowerCase() };
+  }
+
+  function makeLabel(key5) {
+    // key5 example: ztzpt  (0..4)
     if (!key5 || key5.length < 5) return "";
 
-    const p = key5[0].toUpperCase();
-    const r1 = key5[1].toUpperCase();
-    const r2 = key5[2].toUpperCase();
+    const p = key5[0];
+    const t1 = key5[1].toUpperCase();
+    const t2 = key5[2].toUpperCase();
     const o1 = key5[3].toUpperCase();
     const o2 = key5[4].toUpperCase();
 
-    // The first three work identically to your pwm logic:
-    let triple = "";
-    if (r1 === r2) {
-      triple = `(${r1})${r2}`;
-    } else if (r1 === p) {
-      triple = `(${r1})${r2}`;
-    } else if (r2 === p) {
-      triple = `(${r2})${r1}`;
-    } else {
-      triple = `(${r1})${r2}`;
-    }
+    const { index } = decideParenthesis(p, t1, t2);
 
-    // The opponent pair
-    const opp = o1 + o2;
+    // Keep teammate order exactly as in key (t1 then t2),
+    // only add parentheses around the chosen teammate.
+    const teammatesPart = (index === 1) ? `(${t1})${t2}` : `${t1}(${t2})`;
 
-    return `${triple} vs ${opp}`;
+    // keep opponents order unchanged
+    return `${teammatesPart} vs ${o1}${o2}`;
   }
 
   return Object.entries(obj).map(([key, arr]) => {
     const [mmr, wins, losses] = arr ?? [0, 0, 0];
     const games = (wins ?? 0) + (losses ?? 0);
 
+    const teammateA = (key && key[1]) ? key[1].toUpperCase() : "";
+    const teammateB = (key && key[2]) ? key[2].toUpperCase() : "";
+    const opponentA = (key && key[3]) ? key[3].toUpperCase() : "";
+    const opponentB = (key && key[4]) ? key[4].toUpperCase() : "";
+
+    const { index: parenthesisIndex, race: parenthesisRace } =
+      decideParenthesis(key && key[0], teammateA, teammateB);
+
     return {
       key,
-      label: asLabel(key),
+      label: makeLabel(key),
+      teammateA,
+      teammateB,
+      opponentA,
+      opponentB,
+      parenthesisIndex,
+      parenthesisRace,
       total: mmr ?? 0,
       wins: wins ?? 0,
       losses: losses ?? 0,
@@ -1312,7 +1398,7 @@ function drawDrawer3Total(list) {
   resetDrawer3Chart();
 
   const ctx = document.getElementById("extraChart3").getContext("2d");
-  const thickness = calcBarThickness(list.length);
+  const thickness = calcBarThicknessHigh(list.length);
 
   drawer3ChartInstance = new Chart(ctx, {
     type: "bar",
@@ -1336,7 +1422,7 @@ function drawDrawer3PerGame(list) {
   resetDrawer3Chart();
 
   const ctx = document.getElementById("extraChart3").getContext("2d");
-  const thickness = calcBarThickness(list.length);
+  const thickness = calcBarThicknessHigh(list.length);
 
   drawer3ChartInstance = new Chart(ctx, {
     type: "bar",
@@ -1354,7 +1440,7 @@ function drawDrawer3PerGame(list) {
 }
 
 // ======================================================================
-// Tooltip + options (clone of your matchup options)
+// Tooltip + options (replacement - drop-in)
 // ======================================================================
 function drawer3ChartOptions(mode, list, barThickness) {
   let tooltipEl = document.getElementById("bar-tooltip-drawer3");
@@ -1376,6 +1462,12 @@ function drawer3ChartOptions(mode, list, barThickness) {
     });
     document.body.appendChild(tooltipEl);
   }
+
+  const colors = {
+    p: "#EBD678",
+    t: "#53B3FC",
+    z: "#C1A3F5"
+  };
 
   return {
     responsive: true,
@@ -1404,7 +1496,7 @@ function drawer3ChartOptions(mode, list, barThickness) {
           if (!dp) return;
 
           const entry = list[dp.dataIndex];
-          const { label, wins, losses, games, total, perGame } = entry;
+          const { label, wins, losses, games, total, perGame, parenthesisIndex } = entry;
 
           const wr = games > 0 ? (wins / games) * 100 : 0;
           const mmrValue = mode === "total" ? total : perGame;
@@ -1414,31 +1506,50 @@ function drawer3ChartOptions(mode, list, barThickness) {
               ? (mode === "total" ? "MMR lost" : "MMR lost per game")
               : (mode === "total" ? "MMR gained" : "MMR gained per game");
 
-          // Extract two race boxes from label
-          const m = label.match(/^\((.)\)(.) vs /);
-          let rA = "p", rB = "z";
-          if (m) {
-            rA = m[1].toLowerCase();
-            rB = m[2].toLowerCase();
+          // Use structured fields to avoid parsing problems
+          const tA = (entry.teammateA || "").toUpperCase();
+          const tB = (entry.teammateB || "").toUpperCase();
+          const oA = (entry.opponentA || "").toUpperCase();
+          const oB = (entry.opponentB || "").toUpperCase();
+
+          // Build the teammate label, preserving the parenthesis choice
+          // parenthesisIndex === 1 means (tA)tB, === 2 means tA(tB)
+          let teamLabel;
+          if (parenthesisIndex === 2) {
+            teamLabel = `${tA}(${tB})`;
+          } else {
+            teamLabel = `(${tA})${tB}`;
           }
 
-          const colors = {
-            p: "#EBD678",
-            t: "#53B3FC",
-            z: "#C1A3F5"
-          };
+          // Opponent label (no parentheses in your format)
+          const oppLabel = `${oA}${oB}`;
 
+          // Tooltip header: home team boxes + letters  vs  away team boxes + letters
           tooltipEl.innerHTML = `
-            <div style="display:flex;align-items:center;gap:6px;font-weight:bold;margin-bottom:3px;">
-              <span style="width:10px;height:10px;background:${colors[rA]};display:inline-block;border-radius:2px;"></span>
-              <span style="width:10px;height:10px;background:${colors[rB]};display:inline-block;border-radius:2px;"></span>
-              <span>${label}</span>
-            </div>
-            <div style="font-family:monospace; opacity:0.85;">
-              ${wins} wins, ${losses} losses, ${wr.toFixed(1)}%. ${mmrAbs} ${mmrLabel}.
-            </div>
-          `;
+  <div style="display:flex;align-items:center;gap:12px;font-weight:700;margin-bottom:6px;color:inherit;">
+    <!-- Home (teammates) -->
+    <div style="display:flex;align-items:center;gap:3px;"> <!-- smaller gap between boxes -->
+      <span style="width:10px;height:10px;background:${colors[tA.toLowerCase()] || '#666'};display:inline-block;border-radius:2px;"></span>
+      <span style="width:10px;height:10px;background:${colors[tB.toLowerCase()] || '#666'};display:inline-block;border-radius:2px;"></span>
+      <span style="font-family:monospace;font-size:14px;letter-spacing:0;color:inherit;">${teamLabel}</span>
+    </div>
 
+    <div style="opacity:1;color:inherit;font-weight:700;">vs</div>
+
+    <!-- Away (opponents) -->
+    <div style="display:flex;align-items:center;gap:3px;">
+      <span style="width:10px;height:10px;background:${colors[oA.toLowerCase()] || '#666'};display:inline-block;border-radius:2px;"></span>
+      <span style="width:10px;height:10px;background:${colors[oB.toLowerCase()] || '#666'};display:inline-block;border-radius:2px;"></span>
+      <span style="font-family:monospace;font-size:14px;letter-spacing:0;color:inherit;">${oppLabel}</span>
+    </div>
+  </div>
+
+  <div style="font-family:monospace;font-size:14px;opacity:0.85;">
+    ${wins} wins, ${losses} losses, ${wr.toFixed(1)}%. ${mmrAbs} ${mmrLabel}.
+  </div>
+`;
+
+          // position tooltip near cursor
           const rect = ctx.chart.canvas.getBoundingClientRect();
           const mouse = ctx.chart.tooltip?._eventPosition;
           const x = mouse ? mouse.x : tooltip.caretX;
@@ -1483,6 +1594,291 @@ function drawer3ChartOptions(mode, list, barThickness) {
 
 
 /* end of drawer3  */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+let drawer4ChartInstance = null;
+let drawer4DataCache = null;
+let drawer4Names = null;
+
+// small utility to load names once
+async function loadNames() {
+  if (drawer4Names) return drawer4Names;
+  drawer4Names = await fetchNoCache("data/names.json").then(r => r.json());
+  return drawer4Names;
+}
+
+async function loadDrawer4Chart(playerId) {
+  const season = await getCurrentSeason();
+
+  const [stats, names] = await Promise.all([
+    fetchNoCache(`data/seasons/${season}/statistics_data.json`).then(r => r.json()),
+    loadNames()
+  ]);
+
+  const raw = stats.drawer4?.[playerId];
+  if (!raw) return;
+
+  drawer4DataCache = parseDrawer4Data(raw, names);
+  drawDrawer4Total(drawer4DataCache);
+
+  const labelEl = document.getElementById("extraChart4Label");
+  const toggleEl = document.getElementById("chartModeToggle4");
+
+  labelEl.textContent = "Total MMR Gained with Each Ally";
+  toggleEl.dataset.mode = "total";
+  toggleEl.textContent = "Show MMR per Game";
+  toggleEl.style.display = "inline-block";
+
+  toggleEl.onclick = () => {
+    const m = toggleEl.dataset.mode;
+    if (m === "total") {
+      drawDrawer4PerGame(drawer4DataCache);
+      toggleEl.dataset.mode = "pergame";
+      toggleEl.textContent = "Show Total MMR Gained";
+      labelEl.textContent = "MMR Gained per Game with Each Ally";
+    } else {
+      drawDrawer4Total(drawer4DataCache);
+      toggleEl.dataset.mode = "total";
+      toggleEl.textContent = "Show MMR per Game";
+      labelEl.textContent = "Total MMR Gained with Each Ally";
+    }
+  };
+}
+
+// ======================================================================
+// Parse drawer4 → list usable by charts
+// drawer4[playerId] = { allyId: [mmr, wins, losses], ... }
+// ======================================================================
+function parseDrawer4Data(obj, names) {
+  return Object.entries(obj)
+    .map(([allyId, arr]) => {
+      const [mmr, wins, losses] = arr ?? [0, 0, 0];
+      const games = (wins ?? 0) + (losses ?? 0);
+
+      return {
+        allyId,
+        allyName: names[allyId] || allyId,
+        total: mmr ?? 0,
+        wins: wins ?? 0,
+        losses: losses ?? 0,
+        games,
+        perGame: games > 0 ? (mmr / games) : 0
+      };
+    })
+    .sort((a, b) => b.total - a.total);
+}
+
+// ======================================================================
+// Reset
+// ======================================================================
+function resetDrawer4Chart() {
+  if (drawer4ChartInstance) {
+    drawer4ChartInstance.destroy();
+    drawer4ChartInstance = null;
+  }
+}
+
+// ======================================================================
+// Helper: Color scale for MMR
+// ======================================================================
+function mmrColor(v) {
+  if (v >= 0) {
+    // green (#32AA5E) → neutral (#444)
+    const t = Math.min(v / 50, 1);
+    return interpolateColor("#444444", "#32AA5E", t);
+  } else {
+    // red (#BA5531) → neutral (#444)
+    const t = Math.min(Math.abs(v) / 50, 1);
+    return interpolateColor("#444444", "#BA5531", t);
+  }
+}
+
+function interpolateColor(a, b, t) {
+  const ca = hexToRgb(a);
+  const cb = hexToRgb(b);
+  const r = Math.round(ca.r + (cb.r - ca.r) * t);
+  const g = Math.round(ca.g + (cb.g - ca.g) * t);
+  const b2 = Math.round(ca.b + (cb.b - ca.b) * t);
+  return `rgb(${r},${g},${b2})`;
+}
+
+function hexToRgb(hex) {
+  const v = parseInt(hex.replace("#", ""), 16);
+  return { r: (v >> 16) & 255, g: (v >> 8) & 255, b: v & 255 };
+}
+
+// ======================================================================
+// Draw TOTAL
+// ======================================================================
+function drawDrawer4Total(list) {
+  resetDrawer4Chart();
+
+  const ctx = document.getElementById("extraChart4").getContext("2d");
+  const thickness = calcBarThicknessHigh(list.length);
+
+  drawer4ChartInstance = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: list.map(x => x.allyName),
+      datasets: [{
+        data: list.map(x => x.total),
+        backgroundColor: list.map(x => mmrColor(x.total)),
+        barThickness: thickness,
+        maxBarThickness: 44
+      }]
+    },
+    options: drawer4ChartOptions("total", list, thickness)
+  });
+}
+
+// ======================================================================
+// Draw PER GAME
+// ======================================================================
+function drawDrawer4PerGame(list) {
+  resetDrawer4Chart();
+
+  const ctx = document.getElementById("extraChart4").getContext("2d");
+  const thickness = calcBarThicknessHigh(list.length);
+
+  drawer4ChartInstance = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: list.map(x => x.allyName),
+      datasets: [{
+        data: list.map(x => x.perGame),
+        backgroundColor: list.map(x => mmrColor(x.perGame)),
+        barThickness: thickness,
+        maxBarThickness: 44
+      }]
+    },
+    options: drawer4ChartOptions("pergame", list, thickness)
+  });
+}
+
+// ======================================================================
+// Tooltip + options
+// ======================================================================
+function drawer4ChartOptions(mode, list, barThickness) {
+  let tooltipEl = document.getElementById("bar-tooltip-drawer4");
+  if (!tooltipEl) {
+    tooltipEl = document.createElement("div");
+    tooltipEl.id = "bar-tooltip-drawer4";
+    Object.assign(tooltipEl.style, {
+      position: "absolute",
+      background: "rgba(0,0,0,0.85)",
+      color: "#ddd",
+      borderRadius: "6px",
+      padding: "7px 9px",
+      pointerEvents: "none",
+      fontSize: "13px",
+      whiteSpace: "nowrap",
+      transition: "opacity 0.1s ease",
+      opacity: 0,
+      zIndex: 1000
+    });
+    document.body.appendChild(tooltipEl);
+  }
+
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    indexAxis: "y",
+
+    datasets: {
+      bar: {
+        barThickness,
+        maxBarThickness: 44
+      }
+    },
+
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        enabled: false,
+
+        external: ctx => {
+          const tooltip = ctx.tooltip;
+          if (!tooltip || !tooltip.opacity) {
+            tooltipEl.style.opacity = 0;
+            return;
+          }
+
+          const dp = tooltip.dataPoints?.[0];
+          if (!dp) return;
+
+          const entry = list[dp.dataIndex];
+          const { allyName, wins, losses, games, total, perGame } = entry;
+
+          const wr = games > 0 ? (wins / games) * 100 : 0;
+          const mmrValue = mode === "total" ? total : perGame;
+          const absVal = Math.abs(mmrValue).toFixed(2);
+          const mmrLabel =
+            mmrValue < 0
+              ? (mode === "total" ? "MMR lost" : "MMR lost per game")
+              : (mode === "total" ? "MMR gained" : "MMR gained per game");
+
+          tooltipEl.innerHTML = `
+            <div style="font-weight:bold;margin-bottom:3px;">${allyName}</div>
+            <div style="font-family:monospace; opacity:0.85;">
+              ${wins} wins, ${losses} losses, ${wr.toFixed(1)}%.
+              ${absVal} ${mmrLabel}.
+            </div>
+          `;
+
+          const rect = ctx.chart.canvas.getBoundingClientRect();
+          const mouse = ctx.chart.tooltip?._eventPosition;
+          const x = mouse ? mouse.x : tooltip.caretX;
+          const y = mouse ? mouse.y : tooltip.caretY;
+
+          tooltipEl.style.left =
+            rect.left + window.pageXOffset + x + 14 + "px";
+          tooltipEl.style.top =
+            rect.top + window.pageYOffset + y - 12 + "px";
+          tooltipEl.style.opacity = 1;
+        }
+      }
+    },
+
+    scales: {
+      x: {
+        beginAtZero: true,
+        grid: { color: "#222" },
+        ticks: { color: "#AAA" }
+      },
+      y: {
+        ticks: { color: "#AAA" }
+      }
+    }
+  };
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 })();

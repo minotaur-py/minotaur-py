@@ -95,7 +95,7 @@ const statsHTML = `
         <td style="text-align: right; padding: 0;">${mmrUncertainty}</td>
       </tr>
       <tr>
-        <td style="text-align: left; padding: 0;">Win Rate:</td>
+        <td style="text-align: left; padding: 0;">Record:</td>
         <td style="text-align: right; padding: 0;">${playerStats.games}G ${playerStats.wins}W ${losses}L ${winrate}%</td>
       </tr>
       <!--<tr>
@@ -702,42 +702,81 @@ if (opened && !chartLoaded) {
   // ----------------------------------------------------
   // Chart A: Total MMR gained
   // ----------------------------------------------------
-  function drawTotalChart(data) {
-    resetChart();
-    const ctx = document.getElementById("extraChart1").getContext("2d");
+function drawTotalChart(data) {
+  resetChart();
 
-    chartInstance = new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels: ["Protoss", "Terran", "Zerg"],
-        datasets: [{
-          data: [data.total.p, data.total.t, data.total.z],
-          backgroundColor: ["#EBD678", "#53B3FC", "#C1A3F5"]
-        }]
-      },
-      options: chartOptions("total", data)
-    });
-  }
+  // Build sortable list
+  const arr = [
+    { label: "Protoss", value: data.total.p, color: "#EBD678" },
+    { label: "Terran",  value: data.total.t, color: "#53B3FC" },
+    { label: "Zerg",    value: data.total.z, color: "#C1A3F5" }
+  ];
+
+  // Sort descending by MMR gained/lost
+  const sorted = arr.sort((a, b) => b.value - a.value);
+
+  const ctx = document.getElementById("extraChart1").getContext("2d");
+
+  chartInstance = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: sorted.map(x => x.label),
+      datasets: [{
+        data: sorted.map(x => x.value),
+        backgroundColor: sorted.map(x => x.color)
+      }]
+    },
+    options: chartOptions("total", data)
+  });
+}
 
   // ----------------------------------------------------
   // Chart B: MMR per game
   // ----------------------------------------------------
-  function drawPerGameChart(data) {
-    resetChart();
-    const ctx = document.getElementById("extraChart1").getContext("2d");
+ 
 
-    chartInstance = new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels: ["Protoss", "Terran", "Zerg"],
-        datasets: [{
-          data: [data.perGame.p, data.perGame.t, data.perGame.z],
-          backgroundColor: ["#EBD678", "#53B3FC", "#C1A3F5"]
-        }]
-      },
-      options: chartOptions("pergame", data)
-    });
-  }
+
+function drawPerGameChart(data) {
+  resetChart();
+
+  // convert to sortable array
+  const arr = [
+    { label: "Protoss", value: data.perGame.p, color: "#EBD678" },
+    { label: "Terran",  value: data.perGame.t, color: "#53B3FC" },
+    { label: "Zerg",    value: data.perGame.z, color: "#C1A3F5" }
+  ];
+
+  const sorted = arr.sort((a, b) => b.value - a.value);
+
+  const ctx = document.getElementById("extraChart1").getContext("2d");
+
+  chartInstance = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: sorted.map(x => x.label),
+      datasets: [{
+        data: sorted.map(x => x.value),
+        backgroundColor: sorted.map(x => x.color)
+      }]
+    },
+    options: chartOptions("pergame", data)
+  });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   // ----------------------------------------------------
   // Shared chart styling
@@ -1029,6 +1068,11 @@ function resetMatchupChart() {
   }
 }
 
+
+
+
+
+
 function drawMatchupChartTotal(list) {
   resetMatchupChart();
 
@@ -1053,21 +1097,24 @@ function drawMatchupChartTotal(list) {
 function drawMatchupChartPerGame(list) {
   resetMatchupChart();
 
+  // independent per-game order
+  const sorted = [...list].sort((a, b) => b.perGame - a.perGame);
+
   const ctx = document.getElementById("extraChart2").getContext("2d");
-  const thickness = calcBarThickness(list.length);
+  const thickness = calcBarThickness(sorted.length);
 
   matchupChartInstance = new Chart(ctx, {
     type: "bar",
     data: {
-      labels: list.map(x => x.label),
+      labels: sorted.map(x => x.label),
       datasets: [{
-        data: list.map(x => x.perGame),
-        backgroundColor: list.map(x => matchupColor(x.key)),
+        data: sorted.map(x => x.perGame),
+        backgroundColor: sorted.map(x => matchupColor(x.key)),
         barThickness: thickness,
         maxBarThickness: 44
       }]
     },
-    options: matchupChartOptions("pergame", list, thickness)
+    options: matchupChartOptions("pergame", sorted, thickness)
   });
 }
 
@@ -1084,8 +1131,8 @@ function matchupColor(key) {
 }
 
 
-function calcBarThickness(listLength) {
-  const max = 44;
+function calcBarThickness(listLength) {               /* brukes av chart2 per nå  */
+  const max = 42;
   const quota = 132;
   if (listLength <= 0) return max;
   return Math.min(max, Math.floor(quota / listLength));
@@ -1093,8 +1140,18 @@ function calcBarThickness(listLength) {
 
 function calcBarThicknessHigh(listLength) {
   const max = 44;
-  const quota = 264;
+  const quota = 192;                   /* GJELDER4 */
   if (listLength <= 0) return max;
+  return Math.min(max, Math.floor(quota / listLength));
+}
+
+
+
+function calcBarThicknessHigh3(listLength) {
+  const max = 44;
+  const quota = 250;                   /* GJELDER 3  */
+  if (listLength <= 0) return max;
+  
   return Math.min(max, Math.floor(quota / listLength));
 }
 
@@ -1279,7 +1336,12 @@ async function loadDrawer3Chart(playerId) {
     // make sure height is correct after redraw
     updateExtraChart3Height(drawer3DataCache.length);
   };
+  // return bar count for external sizing
+  return drawer3DataCache.length;
 }
+
+
+
 
 
 // ======================================================================
@@ -1387,7 +1449,7 @@ function drawDrawer3Total(list) {
   resetDrawer3Chart();
 
   const ctx = document.getElementById("extraChart3").getContext("2d");
-  const thickness = calcBarThicknessHigh(list.length);
+  const thickness = Math.max(14, calcBarThicknessHigh(list.length));
 
   drawer3ChartInstance = new Chart(ctx, {
     type: "bar",
@@ -1410,21 +1472,24 @@ function drawDrawer3Total(list) {
 function drawDrawer3PerGame(list) {
   resetDrawer3Chart();
 
+  // independent sorting
+  const sorted = [...list].sort((a, b) => b.perGame - a.perGame);
+
   const ctx = document.getElementById("extraChart3").getContext("2d");
-  const thickness = calcBarThicknessHigh(list.length);
+  const thickness = Math.max(14, calcBarThicknessHigh(list.length));
 
   drawer3ChartInstance = new Chart(ctx, {
     type: "bar",
     data: {
-      labels: list.map(x => x.label),
+      labels: sorted.map(x => x.label),
       datasets: [{
-        data: list.map(x => x.perGame),
-        backgroundColor: list.map(x => matchupColor(x.key[0])),
+        data: sorted.map(x => x.perGame),
+        backgroundColor: sorted.map(x => matchupColor(x.key[0])),
         barThickness: thickness,
         maxBarThickness: 44
       }]
     },
-    options: drawer3ChartOptions("pergame", list, thickness)
+    options: drawer3ChartOptions("pergame", sorted, thickness)
   });
 }
 
@@ -1592,6 +1657,26 @@ async function loadNames() {
   return drawer4Names;
 }
 
+
+function updateExtraChart4Height(barCount) {
+  // Use the same logic as Drawer 3
+  const base = 340; 
+  const extraBars = Math.max(0, barCount - 10);
+  const perBar = 24; 
+  const height = base + extraBars * perBar;
+
+  // Assuming the container has the ID "extraChart4Container" (or find its parent)
+  const container = document.getElementById("extraChart4Container");
+  if (container) {
+    container.style.height = height + "px";
+  }
+}
+
+
+
+
+
+
 async function loadDrawer4Chart(playerId) {
   const season = await getCurrentSeason();
 
@@ -1604,7 +1689,13 @@ async function loadDrawer4Chart(playerId) {
   if (!raw) return;
 
   drawer4DataCache = parseDrawer4Data(raw, names);
+  
+  updateExtraChart4Height(drawer4DataCache.length); 
+
   drawDrawer4Total(drawer4DataCache);
+
+
+  
 
   const labelEl = document.getElementById("extraChart4Label");
   const toggleEl = document.getElementById("chartModeToggle4");
@@ -1627,6 +1718,7 @@ async function loadDrawer4Chart(playerId) {
       toggleEl.textContent = "Show MMR per Game";
       labelEl.textContent = "Total MMR Gained with Each Ally";
     }
+    updateExtraChart4Height(drawer4DataCache.length);     /* fra høydejustering */
   };
 }
 
@@ -1692,6 +1784,24 @@ function hexToRgb(hex) {
   return { r: (v >> 16) & 255, g: (v >> 8) & 255, b: v & 255 };
 }
 
+
+function makeMmrColorFunction(list, mode) {
+  const values = list.map(x => mode === "total" ? x.total : x.perGame);
+  const maxAbs = Math.max(...values.map(v => Math.abs(v))) || 1;
+
+  return function(v) {
+    const t = Math.min(Math.abs(v) / maxAbs, 1);
+    if (v >= 0) {
+      return interpolateColor("#444444", "#32AA5E", t);
+    } else {
+      return interpolateColor("#444444", "#BA5531", t);
+    }
+  };
+}
+
+
+
+
 // ======================================================================
 // Draw TOTAL
 // ======================================================================
@@ -1699,7 +1809,9 @@ function drawDrawer4Total(list) {
   resetDrawer4Chart();
 
   const ctx = document.getElementById("extraChart4").getContext("2d");
-  const thickness = calcBarThicknessHigh(list.length);
+  const thickness = Math.max(14, calcBarThicknessHigh(list.length));
+
+  const colorFn = makeMmrColorFunction(list, "total");
 
   drawer4ChartInstance = new Chart(ctx, {
     type: "bar",
@@ -1707,7 +1819,7 @@ function drawDrawer4Total(list) {
       labels: list.map(x => x.allyName),
       datasets: [{
         data: list.map(x => x.total),
-        backgroundColor: list.map(x => mmrColor(x.total)),
+        backgroundColor: list.map(x => colorFn(x.total)),
         barThickness: thickness,
         maxBarThickness: 44
       }]
@@ -1722,23 +1834,34 @@ function drawDrawer4Total(list) {
 function drawDrawer4PerGame(list) {
   resetDrawer4Chart();
 
+  // make a sorted copy by perGame
+  const sorted = [...list].sort((a, b) => b.perGame - a.perGame);
+
   const ctx = document.getElementById("extraChart4").getContext("2d");
-  const thickness = calcBarThicknessHigh(list.length);
+  const thickness = Math.max(14, calcBarThicknessHigh(list.length));
+
+  const colorFn = makeMmrColorFunction(sorted, "pergame");
 
   drawer4ChartInstance = new Chart(ctx, {
     type: "bar",
     data: {
-      labels: list.map(x => x.allyName),
+      labels: sorted.map(x => x.allyName),
       datasets: [{
-        data: list.map(x => x.perGame),
-        backgroundColor: list.map(x => mmrColor(x.perGame)),
+        data: sorted.map(x => x.perGame),
+        backgroundColor: sorted.map(x => colorFn(x.perGame)),
         barThickness: thickness,
         maxBarThickness: 44
       }]
     },
-    options: drawer4ChartOptions("pergame", list, thickness)
+    options: drawer4ChartOptions("pergame", sorted, thickness)
   });
 }
+
+
+
+
+
+
 
 // ======================================================================
 // Tooltip + options

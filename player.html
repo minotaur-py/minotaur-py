@@ -20,7 +20,7 @@
       --accent: #89CFF0;              /* spillernavn */
       --row-odd: #1b1b1b;
       --row-even: #242424;
-      --match-header-bg: #2a2a2a;       /* table header */
+      --match-header-bg: #2a2a2a;       /* table header    row-odd: #1b1b1b;   row-even: #242424;             */
       --match-border: #222;
       --shadow: rgba(0,0,0,0.45);
     }
@@ -47,6 +47,12 @@
       border: 1px solid var(--border);
       
     }
+
+    body tr:hover {
+            background-color: initial;
+        }
+
+
 
     .overview-header { /*Linjen der spillernavnet står */      
       background-color: var(--panel-3);
@@ -299,15 +305,6 @@
   
 }
 
-/* Chart boxes inside expansion */
-.extra-chart {
-  background-color: #161616;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 20px;
-  
-  height: 350px;
-}
 
 /* Button styling */
 .extra-stats-btn {
@@ -401,7 +398,7 @@
   
   padding: 0; 
   margin: 0;
-  line-height: 1; /* Makes the box height exactly the font size */  
+  line-height: 1; /* for vertikal alignment font og knapp */  
 
 
   font-size: .95em;
@@ -421,38 +418,46 @@
 /* --- CHART BOX --- */
 
 .extra-chart {
-  min-height: 360px;
+  
   position: relative;
   display: flex;
   flex-direction: column;
   padding: 20px 20px 72px 20px;
   gap: 10px;
-}
 
 
-
-/* Chart boxes inside expansion */
-.extra-chart-tall {
   background-color: #161616;
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 20px;
-  height: 1050px;
+  
+  
+  height: 350px;
 }
+
+
+
+
+
 
 
 
 
 .extra-chart-tall {
-  min-height: 1060px;
+  
   position: relative;
   display: flex;
   flex-direction: column;
   padding: 20px 20px 72px 20px;
   gap: 10px;
+
+
+
+  background-color: #161616;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  
+  height: 1050px;
 }
-
-
 
 
 
@@ -473,6 +478,7 @@
   display: block;
   
 }
+
 
 
 
@@ -547,7 +553,7 @@
     </div>
     
 
-    <div class="extra-chart-tall">
+    <div class="extra-chart-tall" id="extraChart3Container">
         <canvas id="extraChart3" height="260"></canvas> 
         
         <div class="chart-footer">
@@ -559,7 +565,7 @@
         </div>
     </div>
 
-   <div class="extra-chart-tall">
+   <div class="extra-chart-tall" id="extraChart4Container">
         <canvas id="extraChart4" height="260"></canvas> 
         
         <div class="chart-footer">

@@ -718,16 +718,18 @@ function drawTotalChart(data) {
   const ctx = document.getElementById("extraChart1").getContext("2d");
 
   chartInstance = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: sorted.map(x => x.label),
-      datasets: [{
-        data: sorted.map(x => x.value),
-        backgroundColor: sorted.map(x => x.color)
-      }]
-    },
-    options: chartOptions("total", data)
-  });
+  type: "bar",
+  data: {
+    labels: sorted.map(x => x.label),
+    datasets: [{
+      data: sorted.map(x => x.value),
+      backgroundColor: sorted.map(x =>
+        x.value === 0 ? "#161616" : x.color
+      )
+    }]
+  },
+  options: chartOptions("total", data)
+});
 }
 
   // ----------------------------------------------------
@@ -751,16 +753,18 @@ function drawPerGameChart(data) {
   const ctx = document.getElementById("extraChart1").getContext("2d");
 
   chartInstance = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: sorted.map(x => x.label),
-      datasets: [{
-        data: sorted.map(x => x.value),
-        backgroundColor: sorted.map(x => x.color)
-      }]
-    },
-    options: chartOptions("pergame", data)
-  });
+  type: "bar",
+  data: {
+    labels: sorted.map(x => x.label),
+    datasets: [{
+      data: sorted.map(x => x.value),
+      backgroundColor: sorted.map(x =>
+        x.value === 0 ? "#161616" : x.color
+      )
+    }]
+  },
+  options: chartOptions("pergame", data)
+});
 }
 
 
@@ -819,7 +823,7 @@ function drawPerGameChart(data) {
 
     datasets: {
       bar: {
-        barThickness: barThickness
+        barThickness: barThickness			
       }
     },
 

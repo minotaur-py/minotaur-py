@@ -4,9 +4,7 @@ function fetchNoCache(url) {
   return fetch(`${url}?v=${Date.now()}`);
 }
 
-// --- Determine current season from data/season_start.json ---
 async function getCurrentSeason() {
-
   const res = await fetchNoCache('data/misc_data.json');
   const miscData = await res.json();
   const seasonStart = miscData.seasons;
@@ -18,14 +16,32 @@ async function getCurrentSeason() {
     .sort((a, b) => a[1] - b[1]);
 
   let currentSeason = sorted[0][0];
-  for (let i = 0; i < sorted.length; i++) {
-    const [season, startTime] = sorted[i];
-    if (now >= startTime) currentSeason = season;
-    else break;
-  }
-  return currentSeason;
-}
+  let startTime = sorted[0][1];
+  let endTime = null;
 
+  for (let i = 0; i < sorted.length; i++) {
+    const [season, start] = sorted[i];
+    if (now >= start) {
+      currentSeason = season;
+      startTime = start;
+      endTime = sorted[i + 1] ? sorted[i + 1][1] : null;
+    } else {
+      break;
+    }
+  }
+
+  // 🔥 BACKWARD-COMPATIBLE RETURN
+  // Old code expects a number → keep it
+  // New code wants extra info → include it
+  return Object.assign(
+    currentSeason,            // primitive number
+    {
+      season: currentSeason,  // new field
+      start: startTime,       // new field
+      end: endTime            // new field
+    }
+  );
+}
 // --- Utility: convert timestamp (ms or epoch) to relative time ---
 function timeAgo(timestamp) {
   // Accept either number (ms) or numeric string or ISO string
@@ -82,9 +98,83 @@ document.addEventListener("DOMContentLoaded", async () => {
   const tbody = leaderboardTable.querySelector("tbody");
   if (!tbody) return;
 
-  const currentSeason = await getCurrentSeason();
-  const seasonLabelEl = document.getElementById("season-label");
-  if (seasonLabelEl) seasonLabelEl.textContent = `Season ${currentSeason}`;
+  const { season: currentSeason, start: startTime, end: endTime } = await getCurrentSeason();
+
+
+// Set visible label with inline expansion
+const seasonLabelEl = document.getElementById("season-label");
+
+function formatDate(ts) {
+  const str = new Date(ts).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric"
+  });
+
+  // Ensure month is capitalized: "jan 5" → "Jan 5"
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+if (seasonLabelEl) {
+  seasonLabelEl.innerHTML = `
+    Season ${currentSeason}
+    <span class="season-extra">
+      ${formatDate(startTime)}${endTime ? " – " + formatDate(endTime) :""}
+    </span>
+`;
+(function enableSeasonCountdown() {
+  const extraEl = seasonLabelEl?.querySelector(".season-extra");
+  if (!extraEl || !endTime) return;
+
+  let showingCountdown = false;
+  let countdownInterval = null;
+  const originalText = extraEl.textContent.trim();
+
+  function formatRemaining(ms) {
+    if (ms <= 0) return "0s remaining";
+
+    const sec = Math.floor(ms / 1000);
+    const min = Math.floor(sec / 60);
+    const hr  = Math.floor(min / 60);
+    const day = Math.floor(hr / 24);
+
+    if (day >= 1) return `${day} day${day > 1 ? "s" : ""} left`;
+    if (hr >= 1)  return `${hr} hour${hr > 1 ? "s" : ""} left`;
+    if (min >= 1) return `${min} minute${min > 1 ? "s" : ""} left`;
+    return `${sec} second${sec > 1 ? "s" : ""} left`;
+  }
+
+  function updateCountdown() {
+    const now = Date.now();
+    const remaining = endTime - now;
+    extraEl.textContent = formatRemaining(remaining);
+  }
+
+  function startCountdown() {
+    showingCountdown = true;
+    updateCountdown();
+    countdownInterval = setInterval(updateCountdown, 1000);
+  }
+
+  function stopCountdown() {
+    showingCountdown = false;
+    clearInterval(countdownInterval);
+    extraEl.textContent = originalText;
+  }
+
+  extraEl.addEventListener("click", (ev) => {
+    ev.stopPropagation(); // prevents parent hover events from interfering
+    if (showingCountdown) stopCountdown();
+    else startCountdown();
+  });
+})();
+
+
+
+
+};
+
+// Fill popup panel
+
 
   const [ratings, names] = await Promise.all([
     fetchNoCache(`data/seasons/${currentSeason}/ratings.json`).then(r => r.json()),
